@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>LIVE ADMIN</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #101010;
+      color: #fff;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Noto Sans JP", sans-serif;
+      padding: 24px;
+    }
+
+    .wrap {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    .panel {
+      background: #181818;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 30px;
+      letter-spacing: 0.04em;
+    }
+
+    h2 {
+      margin: 0 0 14px;
+      font-size: 18px;
+    }
+
+    .sub {
+      color: #aaa;
+      margin-bottom: 24px;
+      font-size: 14px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 10px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-weight: 800;
+      font-size: 15px;
+      cursor: pointer;
+      background: #fff;
+      color: #111;
+    }
+
+    button:hover {
+      opacity: 0.86;
+    }
+
+    .blue {
+      background: #4ea1ff;
+      color: #fff;
+    }
+
+    .green {
+      background: #55d98b;
+      color: #061309;
+    }
+
+    .danger {
+      background: #ff5656;
+      color: #fff;
+    }
+
+    .dark {
+      background: #000;
+      color: #fff;
+      border: 1px solid #555;
+    }
+
+    input,
+    textarea {
+      width: 100%;
+      background: #070707;
+      color: #fff;
+      border: 1px solid #333;
+      border-radius: 10px;
+      padding: 13px;
+      font-size: 15px;
+      margin-top: 8px;
+    }
+
+    textarea {
+      min-height: 120px;
+      resize: vertical;
+      line-height: 1.7;
+    }
+
+    .status {
+      background: #050505;
+      color: #bbb;
+      border-radius: 10px;
+      padding: 14px;
+      font-size: 13px;
+      white-space: pre-wrap;
+      overflow: auto;
+      max-height: 260px;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .login {
+      max-width: 420px;
+      margin: 80px auto;
+    }
+
+    .note {
+      color: #aaa;
+      font-size: 13px;
+      line-height: 1.7;
+    }
+  </style>
+</head>
+
+<body>
+  <section id="loginPanel" class="login panel">
+    <h1>ADMIN LOGIN</h1>
+    <p class="note">運営アカウントでログインしてください。</p>
+
+    <input id="email" type="email" placeholder="メールアドレス">
+    <input id="password" type="password" placeholder="パスワード">
+
+    <div style="margin-top: 12px;">
+      <button id="loginBtn">ログイン</button>
+    </div>
+
+    <p id="loginMessage" class="note"></p>
+  </section>
+
+  <main id="adminPanel" class="wrap hidden">
+    <h1>LIVE CONTROL</h1>
+    <div class="sub">
+      SESSION: <span id="sessionName"></span>
+    </div>
+
+    <section class="panel">
+      <h2>画面操作</h2>
+      <div class="grid">
+        <button data-screen="wait">待機</button>
+        <button data-screen="opening" class="blue">OP開始</button>
+        <button data-screen="question">問題</button>
+        <button data-screen="answer">判定</button>
+        <button data-screen="glitch" class="danger">グリッチ</button>
+        <button data-screen="blackout" class="dark">暗転</button>
+        <button data-screen="clear" class="green">クリア</button>
+        <button data-screen="gameover" class="danger">ゲームオーバー</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>メッセージ</h2>
+      <textarea id="messageInput" placeholder="参加者画面に表示する文章"></textarea>
+      <button id="sendMessageBtn" style="margin-top: 10px;">メッセージ反映</button>
+    </section>
+
+    <section class="panel">
+      <h2>タイマー</h2>
+      <input id="timerSeconds" type="number" min="1" value="60">
+      <div class="grid" style="margin-top: 10px;">
+        <button id="startTimerBtn" class="blue">タイマー開始</button>
+        <button id="stopTimerBtn" class="dark">タイマー停止</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>入力ロック</h2>
+      <div class="grid">
+        <button id="lockBtn" class="danger">ロック</button>
+        <button id="unlockBtn" class="green">解除</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>テンプレ進行</h2>
+      <div class="grid">
+        <button id="presetWait">開演待機</button>
+        <button id="presetStart" class="blue">ゲーム開始</button>
+        <button id="presetClear" class="green">成功演出</button>
+        <button id="presetFailed" class="danger">失敗演出</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>現在の状態</h2>
+      <div id="status" class="status">読み込み中...</div>
+    </section>
+  </main>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyB4bBZIH9hP1sRBRwRWU4MNwVf91d9pgrQ",
+      authDomain: "riddle-live-control.firebaseapp.com",
+      databaseURL: "https://riddle-live-control-default-rtdb.asia-southeast1.firebasedatabase.app/",
+      projectId: "riddle-live-control",
+      storageBucket: "riddle-live-control.firebasestorage.app",
+      messagingSenderId: "750925660526",
+      appId: "1:750925660526:web:5678b5a966ed43ce19017f"
+    };
+
+    const firebaseApp = initializeApp(firebaseConfig);
+    const db = getDatabase(firebaseApp);
+    const auth = getAuth(firebaseApp);
+
+    const params = new URLSearchParams(location.search);
+    const sessionId = params.get("session") || "selectword_test";
+
+    const loginPanel = document.getElementById("loginPanel");
+    const adminPanel = document.getElementById("adminPanel");
+    const loginMessage = document.getElementById("loginMessage");
+    const statusEl = document.getElementById("status");
+    const messageInput = document.getElementById("messageInput");
+
+    document.getElementById("sessionName").textContent = sessionId;
+
+    let serverOffset = 0;
+
+    onValue(ref(db, ".info/serverTimeOffset"), snapshot => {
+      serverOffset = snapshot.val() || 0;
+    });
+
+    document.getElementById("loginBtn").addEventListener("click", async () => {
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+
+      try {
+        loginMessage.textContent = "ログイン中...";
+        await signInWithEmailAndPassword(auth, email, password);
+      } catch (error) {
+        loginMessage.textContent = "ログインできませんでした。メールアドレス・パスワードを確認してください。";
+        console.error(error);
+      }
+    });
+
+    onAuthStateChanged(auth, user => {
+      if (!user) return;
+
+      console.log("ログイン中のUID:", user.uid);
+
+      loginPanel.classList.add("hidden");
+      adminPanel.classList.remove("hidden");
+
+      watchSession();
+    });
+
+    function watchSession() {
+      onValue(ref(db, `sessions/${sessionId}`), snapshot => {
+        const state = snapshot.val() || {};
+        statusEl.textContent = JSON.stringify(state, null, 2);
+
+        if (document.activeElement !== messageInput) {
+          messageInput.value = state.message || "";
+        }
+      });
+    }
+
+    document.querySelectorAll("[data-screen]").forEach(button => {
+      button.addEventListener("click", () => {
+        setState({
+          screen: button.dataset.screen
+        });
+      });
+    });
+
+    document.getElementById("sendMessageBtn").addEventListener("click", () => {
+      setState({
+        message: messageInput.value
+      });
+    });
+
+    document.getElementById("startTimerBtn").addEventListener("click", () => {
+      const seconds = Number(document.getElementById("timerSeconds").value || 60);
+      const serverNow = Date.now() + serverOffset;
+
+      setState({
+        timerEndAt: serverNow + seconds * 1000
+      });
+    });
+
+    document.getElementById("stopTimerBtn").addEventListener("click", () => {
+      setState({
+        timerEndAt: null
+      });
+    });
+
+    document.getElementById("lockBtn").addEventListener("click", () => {
+      setState({
+        locked: true
+      });
+    });
+
+    document.getElementById("unlockBtn").addEventListener("click", () => {
+      setState({
+        locked: false
+      });
+    });
+
+    document.getElementById("presetWait").addEventListener("click", () => {
+      setState({
+        screen: "wait",
+        message: "開演までお待ちください。",
+        locked: true,
+        timerEndAt: null,
+        started: false
+      });
+    });
+
+    document.getElementById("presetStart").addEventListener("click", () => {
+      setState({
+        screen: "opening",
+        message: "システムを起動します。\n準備はよろしいですか？",
+        locked: false,
+        timerEndAt: null,
+        started: true
+      });
+    });
+
+    document.getElementById("presetClear").addEventListener("click", () => {
+      setState({
+        screen: "clear",
+        message: "システムの奪還に成功しました。",
+        locked: true,
+        timerEndAt: null
+      });
+    });
+
+    document.getElementById("presetFailed").addEventListener("click", () => {
+      setState({
+        screen: "gameover",
+        message: "システムの奪還に失敗しました。",
+        locked: true,
+        timerEndAt: null
+      });
+    });
+
+    async function setState(data) {
+      const payload = {
+        ...data,
+        commandId: Date.now(),
+        updatedAt: Date.now()
+      };
+
+      try {
+        await update(ref(db, `sessions/${sessionId}`), payload);
+      } catch (error) {
+        alert("更新できませんでした。FirebaseのRules、UID、ログイン状態を確認してください。");
+        console.error(error);
+      }
+    }
+  </script>
+</body>
+</html>
