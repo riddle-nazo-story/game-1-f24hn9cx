@@ -21,7 +21,7 @@
     }
 
     .wrap {
-      max-width: 960px;
+      max-width: 1100px;
       margin: 0 auto;
     }
 
@@ -44,16 +44,34 @@
       font-size: 18px;
     }
 
+    h3 {
+      margin: 0 0 8px;
+      font-size: 16px;
+    }
+
     .sub {
       color: #aaa;
       margin-bottom: 24px;
       font-size: 14px;
+      line-height: 1.7;
     }
 
     .grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
       gap: 10px;
+    }
+
+    .two {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    @media (max-width: 700px) {
+      .two {
+        grid-template-columns: 1fr;
+      }
     }
 
     button {
@@ -92,6 +110,12 @@
       border: 1px solid #555;
     }
 
+    .ghost {
+      background: transparent;
+      color: #fff;
+      border: 1px solid #444;
+    }
+
     input,
     textarea {
       width: 100%;
@@ -108,6 +132,13 @@
       min-height: 120px;
       resize: vertical;
       line-height: 1.7;
+    }
+
+    label {
+      display: block;
+      color: #ccc;
+      font-size: 13px;
+      margin-bottom: 8px;
     }
 
     .status {
@@ -135,6 +166,58 @@
       font-size: 13px;
       line-height: 1.7;
     }
+
+    .session-card {
+      background: #101010;
+      border: 1px solid #333;
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+
+    .session-id {
+      color: #999;
+      font-size: 12px;
+      word-break: break-all;
+    }
+
+    .urlbox {
+      background: #050505;
+      border: 1px solid #333;
+      border-radius: 10px;
+      padding: 12px;
+      margin-top: 10px;
+      font-size: 13px;
+      color: #ddd;
+      word-break: break-all;
+    }
+
+    .mini-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .active-badge {
+      display: inline-block;
+      background: #55d98b;
+      color: #061309;
+      font-size: 12px;
+      font-weight: 800;
+      padding: 4px 8px;
+      border-radius: 999px;
+      margin-left: 8px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
   </style>
 </head>
 
@@ -154,10 +237,70 @@
   </section>
 
   <main id="adminPanel" class="wrap hidden">
-    <h1>LIVE CONTROL</h1>
-    <div class="sub">
-      SESSION: <span id="sessionName"></span>
+    <div class="topbar">
+      <div>
+        <h1>LIVE CONTROL</h1>
+        <div class="sub">
+          現在操作中の公演：<span id="sessionName"></span>
+        </div>
+      </div>
+
+      <div>
+        <button id="copyCurrentGameUrlBtn" class="ghost">現在の参加者URLをコピー</button>
+      </div>
     </div>
+
+    <section class="panel">
+      <h2>公演を追加</h2>
+
+      <div class="two">
+        <div>
+          <label>公演名</label>
+          <input id="newSessionTitle" type="text" placeholder="例：セレクトワード 8/10 11:00回">
+        </div>
+
+        <div>
+          <label>公演日時</label>
+          <input id="newSessionDateTime" type="datetime-local">
+        </div>
+      </div>
+
+      <div style="margin-top: 12px;">
+        <label>初期メッセージ</label>
+        <input id="newSessionMessage" type="text" value="開演までお待ちください。">
+      </div>
+
+      <div style="margin-top: 12px;">
+        <button id="createSessionBtn" class="green">公演を追加してURL生成</button>
+      </div>
+
+      <div id="createdUrls" class="hidden">
+        <h3 style="margin-top: 18px;">生成されたURL</h3>
+
+        <div class="urlbox">
+          <strong>参加者用URL</strong><br>
+          <span id="createdGameUrl"></span>
+        </div>
+        <div class="mini-grid">
+          <button id="copyGameUrlBtn">参加者URLをコピー</button>
+          <button id="openGameUrlBtn" class="blue">参加者画面を開く</button>
+        </div>
+
+        <div class="urlbox">
+          <strong>運営用URL</strong><br>
+          <span id="createdAdminUrl"></span>
+        </div>
+        <div class="mini-grid">
+          <button id="copyAdminUrlBtn">運営URLをコピー</button>
+          <button id="openAdminUrlBtn" class="blue">この公演を操作</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>公演一覧</h2>
+      <div id="sessionList" class="note">読み込み中...</div>
+    </section>
 
     <section class="panel">
       <h2>画面操作</h2>
@@ -214,8 +357,19 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import {
+      getDatabase,
+      ref,
+      onValue,
+      update,
+      set
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+    import {
+      getAuth,
+      signInWithEmailAndPassword,
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyB4bBZIH9hP1sRBRwRWU4MNwVf91d9pgrQ",
@@ -239,10 +393,17 @@
     const loginMessage = document.getElementById("loginMessage");
     const statusEl = document.getElementById("status");
     const messageInput = document.getElementById("messageInput");
+    const sessionList = document.getElementById("sessionList");
 
-    document.getElementById("sessionName").textContent = sessionId;
+    const createdUrls = document.getElementById("createdUrls");
+    const createdGameUrl = document.getElementById("createdGameUrl");
+    const createdAdminUrl = document.getElementById("createdAdminUrl");
 
     let serverOffset = 0;
+    let latestGameUrl = "";
+    let latestAdminUrl = "";
+
+    document.getElementById("sessionName").textContent = sessionId;
 
     onValue(ref(db, ".info/serverTimeOffset"), snapshot => {
       serverOffset = snapshot.val() || 0;
@@ -269,10 +430,11 @@
       loginPanel.classList.add("hidden");
       adminPanel.classList.remove("hidden");
 
-      watchSession();
+      watchCurrentSession();
+      watchSessionList();
     });
 
-    function watchSession() {
+    function watchCurrentSession() {
       onValue(ref(db, `sessions/${sessionId}`), snapshot => {
         const state = snapshot.val() || {};
         statusEl.textContent = JSON.stringify(state, null, 2);
@@ -282,6 +444,137 @@
         }
       });
     }
+
+    function watchSessionList() {
+      onValue(ref(db, "sessions"), snapshot => {
+        const sessions = snapshot.val();
+
+        if (!sessions) {
+          sessionList.textContent = "まだ公演がありません。";
+          return;
+        }
+
+        const entries = Object.entries(sessions).sort((a, b) => {
+          const aTime = a[1].eventAt || "";
+          const bTime = b[1].eventAt || "";
+          return String(aTime).localeCompare(String(bTime));
+        });
+
+        sessionList.innerHTML = "";
+
+        entries.forEach(([id, data]) => {
+          const gameUrl = buildGameUrl(id);
+          const adminUrl = buildAdminUrl(id);
+
+          const card = document.createElement("div");
+          card.className = "session-card";
+
+          card.innerHTML = `
+            <h3>
+              ${escapeHtml(data.title || "無題の公演")}
+              ${id === sessionId ? `<span class="active-badge">操作中</span>` : ""}
+            </h3>
+            <div class="session-id">ID: ${escapeHtml(id)}</div>
+            <div class="note">
+              日時：${escapeHtml(formatEventAt(data.eventAt))}
+            </div>
+
+            <div class="urlbox">
+              <strong>参加者用URL</strong><br>
+              ${escapeHtml(gameUrl)}
+            </div>
+
+            <div class="mini-grid">
+              <button data-copy="${escapeHtml(gameUrl)}">参加者URLコピー</button>
+              <button data-open="${escapeHtml(gameUrl)}" class="blue">参加者画面</button>
+              <button data-open="${escapeHtml(adminUrl)}" class="green">この公演を操作</button>
+            </div>
+          `;
+
+          sessionList.appendChild(card);
+        });
+
+        sessionList.querySelectorAll("[data-copy]").forEach(button => {
+          button.addEventListener("click", () => {
+            copyText(button.dataset.copy);
+          });
+        });
+
+        sessionList.querySelectorAll("[data-open]").forEach(button => {
+          button.addEventListener("click", () => {
+            location.href = button.dataset.open;
+          });
+        });
+      });
+    }
+
+    document.getElementById("createSessionBtn").addEventListener("click", async () => {
+      const title = document.getElementById("newSessionTitle").value.trim();
+      const eventAt = document.getElementById("newSessionDateTime").value;
+      const initialMessage = document.getElementById("newSessionMessage").value.trim() || "開演までお待ちください。";
+
+      if (!title) {
+        alert("公演名を入力してください。");
+        return;
+      }
+
+      if (!eventAt) {
+        alert("公演日時を入力してください。");
+        return;
+      }
+
+      const newSessionId = generateSessionId(title, eventAt);
+
+      const now = Date.now() + serverOffset;
+
+      const data = {
+        title,
+        eventAt,
+        screen: "wait",
+        message: initialMessage,
+        locked: true,
+        timerEndAt: null,
+        started: false,
+        createdAt: now,
+        updatedAt: now
+      };
+
+      try {
+        await set(ref(db, `sessions/${newSessionId}`), data);
+
+        latestGameUrl = buildGameUrl(newSessionId);
+        latestAdminUrl = buildAdminUrl(newSessionId);
+
+        createdGameUrl.textContent = latestGameUrl;
+        createdAdminUrl.textContent = latestAdminUrl;
+        createdUrls.classList.remove("hidden");
+
+        alert("公演を追加しました。URLを参加者に案内できます。");
+      } catch (error) {
+        alert("公演を追加できませんでした。FirebaseのRulesやログイン状態を確認してください。");
+        console.error(error);
+      }
+    });
+
+    document.getElementById("copyGameUrlBtn").addEventListener("click", () => {
+      copyText(latestGameUrl);
+    });
+
+    document.getElementById("copyAdminUrlBtn").addEventListener("click", () => {
+      copyText(latestAdminUrl);
+    });
+
+    document.getElementById("openGameUrlBtn").addEventListener("click", () => {
+      if (latestGameUrl) window.open(latestGameUrl, "_blank");
+    });
+
+    document.getElementById("openAdminUrlBtn").addEventListener("click", () => {
+      if (latestAdminUrl) location.href = latestAdminUrl;
+    });
+
+    document.getElementById("copyCurrentGameUrlBtn").addEventListener("click", () => {
+      copyText(buildGameUrl(sessionId));
+    });
 
     document.querySelectorAll("[data-screen]").forEach(button => {
       button.addEventListener("click", () => {
@@ -366,7 +659,7 @@
       const payload = {
         ...data,
         commandId: Date.now(),
-        updatedAt: Date.now()
+        updatedAt: Date.now() + serverOffset
       };
 
       try {
@@ -375,6 +668,76 @@
         alert("更新できませんでした。FirebaseのRules、UID、ログイン状態を確認してください。");
         console.error(error);
       }
+    }
+
+    function generateSessionId(title, eventAt) {
+      const datePart = eventAt
+        .replaceAll("-", "")
+        .replaceAll(":", "")
+        .replace("T", "_");
+
+      const titlePart = title
+        .toLowerCase()
+        .replace(/[^\w\u3040-\u30ff\u3400-\u9fff]+/g, "_")
+        .replace(/^_+|_+$/g, "")
+        .slice(0, 24) || "event";
+
+      const randomPart = Math.random().toString(36).slice(2, 8);
+
+      return `${titlePart}_${datePart}_${randomPart}`;
+    }
+
+    function buildGameUrl(id) {
+      const url = new URL(location.href);
+      url.search = "";
+      url.hash = "";
+      url.pathname = url.pathname.replace(/admin\.html$/, "game.html");
+      url.searchParams.set("session", id);
+      return url.toString();
+    }
+
+    function buildAdminUrl(id) {
+      const url = new URL(location.href);
+      url.search = "";
+      url.hash = "";
+      url.pathname = url.pathname.replace(/admin\.html$/, "admin.html");
+      url.searchParams.set("session", id);
+      return url.toString();
+    }
+
+    async function copyText(text) {
+      if (!text) return;
+
+      try {
+        await navigator.clipboard.writeText(text);
+        alert("コピーしました。");
+      } catch (error) {
+        prompt("コピーしてください。", text);
+      }
+    }
+
+    function formatEventAt(value) {
+      if (!value) return "未設定";
+
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return value;
+
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, "0");
+      const d = String(date.getDate()).padStart(2, "0");
+      const h = String(date.getHours()).padStart(2, "0");
+      const min = String(date.getMinutes()).padStart(2, "0");
+
+      return `${y}/${m}/${d} ${h}:${min}`;
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
     }
   </script>
 </body>
