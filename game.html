@@ -24,56 +24,153 @@
     }
 
     .screen {
-      width: min(92vw, 760px);
-      min-height: 420px;
+      width: min(94vw, 960px);
+      min-height: 520px;
       border: 1px solid rgba(255, 255, 255, 0.18);
       background: radial-gradient(circle at top, #202020, #050505 72%);
-      padding: 32px 24px;
+      padding: 28px 22px;
       text-align: center;
       display: flex;
       flex-direction: column;
       justify-content: center;
       box-shadow: 0 0 40px rgba(255, 255, 255, 0.08);
+      position: relative;
     }
 
     .label {
       font-size: 13px;
       letter-spacing: 0.24em;
       color: #aaa;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
     }
 
     h1 {
-      font-size: clamp(32px, 8vw, 70px);
-      margin: 0 0 24px;
+      font-size: clamp(30px, 7vw, 68px);
+      margin: 0 0 20px;
       letter-spacing: 0.08em;
     }
 
     .message {
-      font-size: clamp(17px, 4vw, 28px);
-      line-height: 1.9;
+      font-size: clamp(16px, 3.6vw, 26px);
+      line-height: 1.85;
       white-space: pre-wrap;
     }
 
     .timer {
-      margin-top: 28px;
+      margin-top: 24px;
       font-size: clamp(44px, 14vw, 96px);
       font-weight: 900;
       letter-spacing: 0.08em;
     }
 
     .locked {
-      margin-top: 24px;
+      margin-top: 20px;
       color: #ff6b6b;
       font-size: 14px;
       letter-spacing: 0.15em;
     }
 
     .session {
-      margin-top: 24px;
+      margin-top: 20px;
       color: #777;
       font-size: 12px;
       letter-spacing: 0.12em;
+    }
+
+    .video-wrap {
+      width: min(90vw, 820px);
+      aspect-ratio: 16 / 9;
+      margin: 0 auto 22px;
+      background: #000;
+      border: 1px solid rgba(255,255,255,0.2);
+      box-shadow: 0 0 30px rgba(255,255,255,0.08);
+    }
+
+    #ytPlayer {
+      width: 100%;
+      height: 100%;
+    }
+
+    .sound-status {
+      margin: 10px auto 18px;
+      color: #bbb;
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .settings-btn {
+      position: fixed;
+      right: 14px;
+      bottom: 14px;
+      z-index: 20;
+      border: 1px solid rgba(255,255,255,0.35);
+      background: rgba(0,0,0,0.75);
+      color: #fff;
+      border-radius: 999px;
+      padding: 11px 15px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .modal-bg {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.72);
+      z-index: 30;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-bg.show {
+      display: flex;
+    }
+
+    .modal {
+      width: min(92vw, 460px);
+      background: #151515;
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: 0 0 50px rgba(0,0,0,0.6);
+      text-align: left;
+    }
+
+    .modal h2 {
+      margin: 0 0 12px;
+      font-size: 22px;
+    }
+
+    .modal p {
+      color: #bbb;
+      line-height: 1.8;
+      font-size: 14px;
+    }
+
+    .modal .buttons {
+      display: grid;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .modal button {
+      border: 0;
+      border-radius: 12px;
+      padding: 14px 16px;
+      font-weight: 900;
+      cursor: pointer;
+      font-size: 15px;
+    }
+
+    .on-btn {
+      background: #55d98b;
+      color: #061309;
+    }
+
+    .off-btn {
+      background: #333;
+      color: #fff;
     }
 
     .blackout {
@@ -107,6 +204,26 @@
     <div class="message">接続中...</div>
   </main>
 
+  <button id="settingsBtn" class="settings-btn">音声設定</button>
+
+  <div id="soundModal" class="modal-bg">
+    <div class="modal">
+      <h2>音声設定</h2>
+      <p>
+        この公演では、開演前に映像が再生される場合があります。<br>
+        音声を使用する場合は「音声ONで参加」を押してください。<br>
+        あとから右下の「音声設定」で変更できます。
+      </p>
+
+      <div class="buttons">
+        <button id="soundOnBtn" class="on-btn">音声ONで参加</button>
+        <button id="soundOffBtn" class="off-btn">音声OFFで参加</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://www.youtube.com/iframe_api"></script>
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
@@ -128,9 +245,51 @@
     const sessionId = params.get("session") || "selectword_test";
 
     const appEl = document.getElementById("app");
+    const soundModal = document.getElementById("soundModal");
+    const settingsBtn = document.getElementById("settingsBtn");
+    const soundOnBtn = document.getElementById("soundOnBtn");
+    const soundOffBtn = document.getElementById("soundOffBtn");
 
+    const SOUND_KEY = "rs_live_game_sound_setting";
+
+    let currentState = null;
     let serverOffset = 0;
     let timerInterval = null;
+
+    let ytReady = false;
+    let player = null;
+    let playerReady = false;
+    let currentPlaylistKey = "";
+    let lastLayoutKey = "";
+    let lastCommandId = null;
+    let firstVideoSync = true;
+
+    window.onYouTubeIframeAPIReady = () => {
+      ytReady = true;
+      ensureYouTubePlayer();
+    };
+
+    settingsBtn.addEventListener("click", () => {
+      soundModal.classList.add("show");
+    });
+
+    soundOnBtn.addEventListener("click", () => {
+      localStorage.setItem(SOUND_KEY, "on");
+      soundModal.classList.remove("show");
+      syncPlayerWithState();
+      render(currentState, true);
+    });
+
+    soundOffBtn.addEventListener("click", () => {
+      localStorage.setItem(SOUND_KEY, "off");
+      soundModal.classList.remove("show");
+      syncPlayerWithState();
+      render(currentState, true);
+    });
+
+    if (!localStorage.getItem(SOUND_KEY)) {
+      soundModal.classList.add("show");
+    }
 
     onValue(ref(db, ".info/serverTimeOffset"), snapshot => {
       serverOffset = snapshot.val() || 0;
@@ -144,12 +303,49 @@
         return;
       }
 
+      currentState = state;
       render(state);
+      ensureYouTubePlayer();
+      syncPlayerWithState();
     });
 
-    function render(state) {
+    function render(state, force = false) {
+      if (!state) return;
+
       clearInterval(timerInterval);
       timerInterval = null;
+
+      const videoControl = state.videoControl || {};
+      const playlist = Array.isArray(videoControl.playlist) ? videoControl.playlist.filter(Boolean) : [];
+      const showVideo = state.screen === "wait" && videoControl.enabled && playlist.length > 0;
+
+      const layoutKey = [
+        state.screen,
+        state.message,
+        state.locked,
+        state.timerEndAt,
+        showVideo,
+        playlist.join(","),
+        videoControl.enabled,
+        getSoundSetting()
+      ].join("|");
+
+      if (!force && layoutKey === lastLayoutKey) {
+        if (state.timerEndAt) startTimer(Number(state.timerEndAt));
+        return;
+      }
+
+      lastLayoutKey = layoutKey;
+
+      if (player) {
+        try {
+          player.destroy();
+        } catch (error) {}
+        player = null;
+        playerReady = false;
+        currentPlaylistKey = "";
+        firstVideoSync = true;
+      }
 
       appEl.className = "screen";
 
@@ -161,9 +357,20 @@
         appEl.classList.add("glitch");
       }
 
+      const videoHtml = showVideo ? `
+        <div class="video-wrap">
+          <div id="ytPlayer"></div>
+        </div>
+        <div class="sound-status">
+          プレイヤー音声：${getSoundSetting() === "on" ? "ON" : "OFF"}<br>
+          運営音声：${videoControl.muted ? "OFF" : "ON"}
+        </div>
+      ` : "";
+
       appEl.innerHTML = `
         <div class="label">${escapeHtml(getLabel(state.screen))}</div>
         <h1>${escapeHtml(getTitle(state.screen))}</h1>
+        ${videoHtml}
         <div class="message">${escapeHtml(state.message || "")}</div>
         <div id="timer" class="timer"></div>
         ${state.locked ? `<div class="locked">INPUT LOCKED</div>` : ""}
@@ -173,6 +380,146 @@
       if (state.timerEndAt) {
         startTimer(Number(state.timerEndAt));
       }
+    }
+
+    function ensureYouTubePlayer() {
+      if (!ytReady || !currentState) return;
+
+      const videoControl = currentState.videoControl || {};
+      const playlist = Array.isArray(videoControl.playlist) ? videoControl.playlist.filter(Boolean) : [];
+      const showVideo = currentState.screen === "wait" && videoControl.enabled && playlist.length > 0;
+
+      if (!showVideo) return;
+
+      const target = document.getElementById("ytPlayer");
+      if (!target) return;
+
+      const playlistKey = playlist.join(",");
+
+      if (player && currentPlaylistKey === playlistKey) {
+        return;
+      }
+
+      currentPlaylistKey = playlistKey;
+
+      player = new YT.Player("ytPlayer", {
+        width: "100%",
+        height: "100%",
+        playerVars: {
+          autoplay: 1,
+          controls: 0,
+          rel: 0,
+          modestbranding: 1,
+          playsinline: 1
+        },
+        events: {
+          onReady: () => {
+            playerReady = true;
+
+            const startIndex = Math.max(0, Math.min(Number(videoControl.index || 0), playlist.length - 1));
+
+            if (videoControl.playing) {
+              player.loadPlaylist(playlist, startIndex, 0);
+            } else {
+              player.cuePlaylist(playlist, startIndex, 0);
+            }
+
+            syncPlayerWithState();
+          },
+          onStateChange: event => {
+            if (event.data === YT.PlayerState.ENDED) {
+              // YouTubeのプレイリスト再生では基本的に自動で次へ進みます。
+              // 最後の動画まで終わった場合はそのまま停止状態になります。
+            }
+          }
+        }
+      });
+    }
+
+    function syncPlayerWithState() {
+      if (!player || !playerReady || !currentState) return;
+
+      const videoControl = currentState.videoControl || {};
+
+      syncAudio();
+
+      if (firstVideoSync) {
+        lastCommandId = videoControl.commandId || 0;
+        firstVideoSync = false;
+      } else if (videoControl.commandId && videoControl.commandId !== lastCommandId) {
+        lastCommandId = videoControl.commandId;
+        runVideoCommand(videoControl.command);
+      }
+
+      if (videoControl.playing) {
+        try {
+          player.playVideo();
+        } catch (error) {}
+      } else {
+        try {
+          player.pauseVideo();
+        } catch (error) {}
+      }
+    }
+
+    function runVideoCommand(command) {
+      if (!player || !playerReady) return;
+
+      switch (command) {
+        case "play":
+          syncAudio();
+          player.playVideo();
+          break;
+
+        case "pause":
+        case "stop":
+          player.pauseVideo();
+          break;
+
+        case "next":
+          syncAudio();
+          player.nextVideo();
+          player.playVideo();
+          break;
+
+        case "restart":
+          syncAudio();
+          player.seekTo(0, true);
+          player.playVideo();
+          break;
+
+        case "mute":
+        case "unmute":
+          syncAudio();
+          break;
+
+        case "reload":
+          location.reload();
+          break;
+      }
+    }
+
+    function syncAudio() {
+      if (!player || !currentState) return;
+
+      const videoControl = currentState.videoControl || {};
+      const playerAllowsSound = getSoundSetting() === "on";
+      const adminMuted = Boolean(videoControl.muted);
+
+      const shouldMute = adminMuted || !playerAllowsSound;
+
+      try {
+        if (shouldMute) {
+          player.mute();
+        } else {
+          player.unMute();
+          player.setVolume(80);
+        }
+      } catch (error) {}
+    }
+
+    function getSoundSetting() {
+      return localStorage.getItem(SOUND_KEY) || "off";
     }
 
     function renderError(title, message) {
@@ -214,6 +561,7 @@
 
     function startTimer(endAt) {
       const timerEl = document.getElementById("timer");
+      if (!timerEl) return;
 
       const update = () => {
         const serverNow = Date.now() + serverOffset;
