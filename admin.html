@@ -49,16 +49,16 @@
       font-size: 16px;
     }
 
-    .sub {
+    .sub,
+    .note {
       color: #aaa;
-      margin-bottom: 24px;
-      font-size: 14px;
+      font-size: 13px;
       line-height: 1.7;
     }
 
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
       gap: 10px;
     }
 
@@ -159,12 +159,6 @@
     .login {
       max-width: 420px;
       margin: 80px auto;
-    }
-
-    .note {
-      color: #aaa;
-      font-size: 13px;
-      line-height: 1.7;
     }
 
     .session-card {
@@ -271,6 +265,15 @@
       </div>
 
       <div style="margin-top: 12px;">
+        <label>開演前YouTube動画URL</label>
+        <textarea id="newSessionYoutubeUrls" placeholder="1行に1つずつYouTube URLを入れてください。
+例：
+https://www.youtube.com/watch?v=xxxxxxxxxxx
+https://youtu.be/yyyyyyyyyyy"></textarea>
+        <p class="note">複数入れると、開演前に順番に再生されます。</p>
+      </div>
+
+      <div style="margin-top: 12px;">
         <button id="createSessionBtn" class="green">公演を追加してURL生成</button>
       </div>
 
@@ -293,6 +296,33 @@
         <div class="mini-grid">
           <button id="copyAdminUrlBtn">運営URLをコピー</button>
           <button id="openAdminUrlBtn" class="blue">この公演を操作</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>開演前YouTube操作</h2>
+
+      <p class="note">
+        音声ONは、参加者がゲーム画面で「音声ONで参加」を選んでいる場合のみ反映されます。
+      </p>
+
+      <div class="grid" style="margin-top: 12px;">
+        <button id="videoPlayBtn" class="blue">動画再生</button>
+        <button id="videoStopBtn" class="dark">動画ストップ</button>
+        <button id="videoSoundOnBtn" class="green">全体音声ON</button>
+        <button id="videoSoundOffBtn" class="danger">全体音声OFF</button>
+        <button id="videoNextBtn" class="blue">次の動画へ</button>
+        <button id="videoRestartBtn">最初から再生</button>
+      </div>
+
+      <div style="margin-top: 16px;">
+        <label>現在操作中の公演のYouTube URL</label>
+        <textarea id="currentYoutubeUrls" placeholder="1行に1つずつYouTube URLを入れてください。"></textarea>
+        <div class="grid" style="margin-top: 10px;">
+          <button id="saveCurrentYoutubeBtn" class="green">YouTube設定を保存</button>
+          <button id="disableYoutubeBtn" class="danger">YouTubeを非表示</button>
+          <button id="enableYoutubeBtn" class="blue">YouTubeを表示</button>
         </div>
       </div>
     </section>
@@ -394,6 +424,7 @@
     const statusEl = document.getElementById("status");
     const messageInput = document.getElementById("messageInput");
     const sessionList = document.getElementById("sessionList");
+    const currentYoutubeUrls = document.getElementById("currentYoutubeUrls");
 
     const createdUrls = document.getElementById("createdUrls");
     const createdGameUrl = document.getElementById("createdGameUrl");
@@ -402,6 +433,7 @@
     let serverOffset = 0;
     let latestGameUrl = "";
     let latestAdminUrl = "";
+    let currentSessionData = null;
 
     document.getElementById("sessionName").textContent = sessionId;
 
@@ -425,8 +457,6 @@
     onAuthStateChanged(auth, user => {
       if (!user) return;
 
-      console.log("ログイン中のUID:", user.uid);
-
       loginPanel.classList.add("hidden");
       adminPanel.classList.remove("hidden");
 
@@ -437,10 +467,17 @@
     function watchCurrentSession() {
       onValue(ref(db, `sessions/${sessionId}`), snapshot => {
         const state = snapshot.val() || {};
+        currentSessionData = state;
+
         statusEl.textContent = JSON.stringify(state, null, 2);
 
         if (document.activeElement !== messageInput) {
           messageInput.value = state.message || "";
+        }
+
+        if (document.activeElement !== currentYoutubeUrls) {
+          const playlist = state.videoControl?.playlist || [];
+          currentYoutubeUrls.value = playlist.map(id => `https://www.youtube.com/watch?v=${id}`).join("\n");
         }
       });
     }
@@ -466,6 +503,8 @@
           const gameUrl = buildGameUrl(id);
           const adminUrl = buildAdminUrl(id);
 
+          const playlistCount = data.videoControl?.playlist?.length || 0;
+
           const card = document.createElement("div");
           card.className = "session-card";
 
@@ -476,7 +515,8 @@
             </h3>
             <div class="session-id">ID: ${escapeHtml(id)}</div>
             <div class="note">
-              日時：${escapeHtml(formatEventAt(data.eventAt))}
+              日時：${escapeHtml(formatEventAt(data.eventAt))}<br>
+              YouTube動画：${playlistCount}本
             </div>
 
             <div class="urlbox">
@@ -512,6 +552,7 @@
       const title = document.getElementById("newSessionTitle").value.trim();
       const eventAt = document.getElementById("newSessionDateTime").value;
       const initialMessage = document.getElementById("newSessionMessage").value.trim() || "開演までお待ちください。";
+      const youtubeText = document.getElementById("newSessionYoutubeUrls").value.trim();
 
       if (!title) {
         alert("公演名を入力してください。");
@@ -523,8 +564,8 @@
         return;
       }
 
+      const playlist = extractYouTubeIds(youtubeText);
       const newSessionId = generateSessionId(title, eventAt);
-
       const now = Date.now() + serverOffset;
 
       const data = {
@@ -536,7 +577,17 @@
         timerEndAt: null,
         started: false,
         createdAt: now,
-        updatedAt: now
+        updatedAt: now,
+        videoControl: {
+          enabled: playlist.length > 0,
+          playlist,
+          index: 0,
+          playing: playlist.length > 0,
+          muted: true,
+          command: "init",
+          commandId: 0,
+          updatedAt: now
+        }
       };
 
       try {
@@ -549,12 +600,101 @@
         createdAdminUrl.textContent = latestAdminUrl;
         createdUrls.classList.remove("hidden");
 
-        alert("公演を追加しました。URLを参加者に案内できます。");
+        alert("公演を追加しました。参加者URLを案内できます。");
       } catch (error) {
         alert("公演を追加できませんでした。FirebaseのRulesやログイン状態を確認してください。");
         console.error(error);
       }
     });
+
+    document.getElementById("saveCurrentYoutubeBtn").addEventListener("click", async () => {
+      const playlist = extractYouTubeIds(currentYoutubeUrls.value);
+      const now = Date.now() + serverOffset;
+
+      await update(ref(db, `sessions/${sessionId}/videoControl`), {
+        enabled: playlist.length > 0,
+        playlist,
+        index: 0,
+        playing: playlist.length > 0,
+        muted: true,
+        command: "reload",
+        commandId: Date.now(),
+        updatedAt: now
+      });
+
+      alert("YouTube設定を保存しました。");
+    });
+
+    document.getElementById("disableYoutubeBtn").addEventListener("click", () => {
+      update(ref(db, `sessions/${sessionId}/videoControl`), {
+        enabled: false,
+        playing: false,
+        command: "stop",
+        commandId: Date.now(),
+        updatedAt: Date.now() + serverOffset
+      });
+    });
+
+    document.getElementById("enableYoutubeBtn").addEventListener("click", () => {
+      update(ref(db, `sessions/${sessionId}/videoControl`), {
+        enabled: true,
+        command: "reload",
+        commandId: Date.now(),
+        updatedAt: Date.now() + serverOffset
+      });
+    });
+
+    document.getElementById("videoPlayBtn").addEventListener("click", () => {
+      sendVideoCommand("play", {
+        playing: true
+      });
+    });
+
+    document.getElementById("videoStopBtn").addEventListener("click", () => {
+      sendVideoCommand("pause", {
+        playing: false
+      });
+    });
+
+    document.getElementById("videoSoundOnBtn").addEventListener("click", () => {
+      sendVideoCommand("unmute", {
+        muted: false
+      });
+    });
+
+    document.getElementById("videoSoundOffBtn").addEventListener("click", () => {
+      sendVideoCommand("mute", {
+        muted: true
+      });
+    });
+
+    document.getElementById("videoNextBtn").addEventListener("click", () => {
+      sendVideoCommand("next", {
+        playing: true
+      });
+    });
+
+    document.getElementById("videoRestartBtn").addEventListener("click", () => {
+      sendVideoCommand("restart", {
+        playing: true
+      });
+    });
+
+    async function sendVideoCommand(command, extra = {}) {
+      const now = Date.now() + serverOffset;
+
+      try {
+        await update(ref(db, `sessions/${sessionId}/videoControl`), {
+          ...extra,
+          command,
+          commandId: Date.now(),
+          updatedAt: now
+        });
+      } catch (error) {
+        alert("動画操作に失敗しました。ログイン状態やRulesを確認してください。");
+        console.error(error);
+      }
+    }
 
     document.getElementById("copyGameUrlBtn").addEventListener("click", () => {
       copyText(latestGameUrl);
@@ -670,6 +810,60 @@
       }
     }
 
+    function extractYouTubeIds(text) {
+      if (!text) return [];
+
+      const parts = text
+        .split(/[\n,]+/)
+        .map(v => v.trim())
+        .filter(Boolean);
+
+      const ids = [];
+
+      parts.forEach(part => {
+        const id = extractYouTubeId(part);
+        if (id && !ids.includes(id)) {
+          ids.push(id);
+        }
+      });
+
+      return ids;
+    }
+
+    function extractYouTubeId(value) {
+      if (!value) return "";
+
+      const trimmed = value.trim();
+
+      if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) {
+        return trimmed;
+      }
+
+      try {
+        const url = new URL(trimmed);
+
+        if (url.hostname.includes("youtu.be")) {
+          return url.pathname.replace("/", "").split("/")[0].trim();
+        }
+
+        if (url.hostname.includes("youtube.com")) {
+          if (url.searchParams.get("v")) {
+            return url.searchParams.get("v").trim();
+          }
+
+          const embedMatch = url.pathname.match(/\/embed\/([^/?]+)/);
+          if (embedMatch) return embedMatch[1].trim();
+
+          const shortsMatch = url.pathname.match(/\/shorts\/([^/?]+)/);
+          if (shortsMatch) return shortsMatch[1].trim();
+        }
+      } catch (error) {
+        return "";
+      }
+
+      return "";
+    }
+
     function generateSessionId(title, eventAt) {
       const datePart = eventAt
         .replaceAll("-", "")
@@ -680,7 +874,7 @@
         .toLowerCase()
         .replace(/[^\w\u3040-\u30ff\u3400-\u9fff]+/g, "_")
         .replace(/^_+|_+$/g, "")
-        .slice(0, 24) || "event";
+        .slice(0, 20) || "event";
 
       const randomPart = Math.random().toString(36).slice(2, 8);
 
@@ -691,7 +885,13 @@
       const url = new URL(location.href);
       url.search = "";
       url.hash = "";
-      url.pathname = url.pathname.replace(/admin\.html$/, "game.html");
+
+      if (url.pathname.endsWith("admin.html")) {
+        url.pathname = url.pathname.replace(/admin\.html$/, "game.html");
+      } else {
+        url.pathname = url.pathname.replace(/\/$/, "") + "/game.html";
+      }
+
       url.searchParams.set("session", id);
       return url.toString();
     }
@@ -700,7 +900,11 @@
       const url = new URL(location.href);
       url.search = "";
       url.hash = "";
-      url.pathname = url.pathname.replace(/admin\.html$/, "admin.html");
+
+      if (!url.pathname.endsWith("admin.html")) {
+        url.pathname = url.pathname.replace(/\/$/, "") + "/admin.html";
+      }
+
       url.searchParams.set("session", id);
       return url.toString();
     }
