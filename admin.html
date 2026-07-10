@@ -2,947 +2,111 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <title>LIVE ADMIN</title>
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>RIDDLE LIVE ADMIN</title>
   <style>
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      min-height: 100vh;
-      background: #101010;
-      color: #fff;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Noto Sans JP", sans-serif;
-      padding: 24px;
-    }
-
-    .wrap {
-      max-width: 1100px;
-      margin: 0 auto;
-    }
-
-    .panel {
-      background: #181818;
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      border-radius: 16px;
-      padding: 20px;
-      margin-bottom: 18px;
-    }
-
-    h1 {
-      margin: 0 0 8px;
-      font-size: 30px;
-      letter-spacing: 0.04em;
-    }
-
-    h2 {
-      margin: 0 0 14px;
-      font-size: 18px;
-    }
-
-    h3 {
-      margin: 0 0 8px;
-      font-size: 16px;
-    }
-
-    .sub,
-    .note {
-      color: #aaa;
-      font-size: 13px;
-      line-height: 1.7;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
-      gap: 10px;
-    }
-
-    .two {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-
-    @media (max-width: 700px) {
-      .two {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    button {
-      border: 0;
-      border-radius: 10px;
-      padding: 14px 16px;
-      font-weight: 800;
-      font-size: 15px;
-      cursor: pointer;
-      background: #fff;
-      color: #111;
-    }
-
-    button:hover {
-      opacity: 0.86;
-    }
-
-    .blue {
-      background: #4ea1ff;
-      color: #fff;
-    }
-
-    .green {
-      background: #55d98b;
-      color: #061309;
-    }
-
-    .danger {
-      background: #ff5656;
-      color: #fff;
-    }
-
-    .dark {
-      background: #000;
-      color: #fff;
-      border: 1px solid #555;
-    }
-
-    .ghost {
-      background: transparent;
-      color: #fff;
-      border: 1px solid #444;
-    }
-
-    input,
-    textarea {
-      width: 100%;
-      background: #070707;
-      color: #fff;
-      border: 1px solid #333;
-      border-radius: 10px;
-      padding: 13px;
-      font-size: 15px;
-      margin-top: 8px;
-    }
-
-    textarea {
-      min-height: 120px;
-      resize: vertical;
-      line-height: 1.7;
-    }
-
-    label {
-      display: block;
-      color: #ccc;
-      font-size: 13px;
-      margin-bottom: 8px;
-    }
-
-    .status {
-      background: #050505;
-      color: #bbb;
-      border-radius: 10px;
-      padding: 14px;
-      font-size: 13px;
-      white-space: pre-wrap;
-      overflow: auto;
-      max-height: 260px;
-    }
-
-    .hidden {
-      display: none;
-    }
-
-    .login {
-      max-width: 420px;
-      margin: 80px auto;
-    }
-
-    .session-card {
-      background: #101010;
-      border: 1px solid #333;
-      border-radius: 14px;
-      padding: 14px;
-      margin-bottom: 12px;
-    }
-
-    .session-id {
-      color: #999;
-      font-size: 12px;
-      word-break: break-all;
-    }
-
-    .urlbox {
-      background: #050505;
-      border: 1px solid #333;
-      border-radius: 10px;
-      padding: 12px;
-      margin-top: 10px;
-      font-size: 13px;
-      color: #ddd;
-      word-break: break-all;
-    }
-
-    .mini-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-      gap: 8px;
-      margin-top: 10px;
-    }
-
-    .active-badge {
-      display: inline-block;
-      background: #55d98b;
-      color: #061309;
-      font-size: 12px;
-      font-weight: 800;
-      padding: 4px 8px;
-      border-radius: 999px;
-      margin-left: 8px;
-    }
-
-    .topbar {
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      align-items: flex-start;
-      flex-wrap: wrap;
-      margin-bottom: 18px;
-    }
+    :root{--bg:#070708;--panel:#151518;--panel2:#1d1d22;--line:rgba(255,255,255,.12);--text:#f5f5f7;--muted:#a5a5ad;--blue:#4ea1ff;--ok:#61d394;--danger:#ff5656;--warn:#ffbd4a}
+    *{box-sizing:border-box}body{margin:0;min-height:100dvh;background:radial-gradient(circle at top,#20212a,#070708 58%,#000);color:var(--text);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Noto Sans JP",sans-serif;padding:18px}button,input,textarea{font:inherit}.wrap{max-width:1280px;margin:0 auto}.hidden{display:none!important}
+    .login{max-width:440px;margin:9dvh auto;background:var(--panel);border:1px solid var(--line);border-radius:24px;padding:24px;box-shadow:0 30px 80px rgba(0,0,0,.5)}
+    .top{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:16px}.title h1{margin:0 0 6px;font-size:30px;letter-spacing:.04em}.sub,.note{color:var(--muted);font-size:13px;line-height:1.65}.dash{display:grid;grid-template-columns:1.05fr .95fr;gap:14px}@media(max-width:960px){.dash{grid-template-columns:1fr}}
+    .panel{background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.025));border:1px solid var(--line);border-radius:22px;padding:18px;margin-bottom:14px;box-shadow:0 18px 45px rgba(0,0,0,.24)}h2{font-size:18px;margin:0 0 14px}h3{font-size:15px;margin:0 0 8px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:9px}.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:700px){.two{grid-template-columns:1fr}}
+    label{display:block;color:#ddd;font-size:13px;margin:12px 0 7px}input,textarea{width:100%;background:#08080a;color:#fff;border:1px solid #303038;border-radius:13px;padding:12px}textarea{min-height:110px;resize:vertical;line-height:1.55}button{border:0;border-radius:13px;padding:13px 14px;font-weight:900;cursor:pointer;background:#fff;color:#08080a}button:hover{opacity:.88}.blue{background:var(--blue);color:#fff}.ok{background:var(--ok);color:#07150d}.danger{background:var(--danger);color:#fff}.dark{background:#050506;color:#fff;border:1px solid #484852}.ghost{background:transparent;color:#fff;border:1px solid #44444d}.warn{background:var(--warn);color:#130d00}
+    .status{background:#060608;color:#c5c5cc;border:1px solid #27272e;border-radius:14px;padding:12px;white-space:pre-wrap;max-height:260px;overflow:auto;font-size:12px}.card{background:#0d0d10;border:1px solid #292930;border-radius:16px;padding:13px;margin-bottom:10px}.mini{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-top:10px}.url{background:#050506;border:1px solid #2e2e35;border-radius:12px;padding:10px;color:#d7d7dc;word-break:break-all;font-size:12px;margin-top:8px}.badge{display:inline-block;border:1px solid #3a3a42;border-radius:999px;padding:4px 8px;margin:2px;color:#ddd;font-size:12px}.online{background:rgba(97,211,148,.16);border-color:rgba(97,211,148,.5)}.offline{opacity:.55}.player-row{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;border-bottom:1px solid #28282e;padding:9px 0}.player-row:last-child{border-bottom:0}.read-list{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}.current{outline:2px solid rgba(97,211,148,.55)}
+    @media(max-width:640px){body{padding:10px}.panel{border-radius:16px;padding:14px}.title h1{font-size:24px}.grid{grid-template-columns:1fr 1fr}button{font-size:13px;padding:12px 10px}.login{margin:5dvh auto}}
   </style>
 </head>
-
 <body>
-  <section id="loginPanel" class="login panel">
-    <h1>ADMIN LOGIN</h1>
-    <p class="note">運営アカウントでログインしてください。</p>
-
-    <input id="email" type="email" placeholder="メールアドレス">
-    <input id="password" type="password" placeholder="パスワード">
-
-    <div style="margin-top: 12px;">
-      <button id="loginBtn">ログイン</button>
-    </div>
-
-    <p id="loginMessage" class="note"></p>
-  </section>
+  <section id="loginPanel" class="login"><h1>ADMIN LOGIN</h1><p class="note">運営アカウントでログインしてください。</p><input id="email" type="email" placeholder="メールアドレス"><input id="password" type="password" placeholder="パスワード" style="margin-top:10px"><button id="loginBtn" style="margin-top:12px">ログイン</button><p id="loginMsg" class="note"></p></section>
 
   <main id="adminPanel" class="wrap hidden">
-    <div class="topbar">
+    <div class="top"><div class="title"><h1>RIDDLE LIVE CONTROL</h1><div class="sub">操作中：<strong id="sessionName"></strong> / オンライン <strong id="onlineCount">0</strong> 人 / 登録 <strong id="totalCount">0</strong> 人</div></div><div class="grid" style="min-width:min(100%,430px)"><button id="copyGameBtn" class="ghost">参加者URLコピー</button><button id="openGameBtn" class="blue">参加者画面</button></div></div>
+
+    <div class="dash">
       <div>
-        <h1>LIVE CONTROL</h1>
-        <div class="sub">
-          現在操作中の公演：<span id="sessionName"></span>
-        </div>
+        <section class="panel"><h2>公演を追加</h2><div class="two"><div><label>公演名</label><input id="newTitle" placeholder="例：セレクトワード 8/10 11:00回"></div><div><label>公演日時</label><input id="newEventAt" type="datetime-local"></div></div><label>初期メッセージ</label><input id="newMessage" value="開演までお待ちください。"><label>YouTube URL（1行に1つ）</label><textarea id="newYoutubeUrls" placeholder="https://www.youtube.com/watch?v=...&#10;https://youtu.be/..."></textarea><div class="two"><div><label>開幕画像URL</label><input id="newOpeningImage" placeholder="assets/opening.jpg など"></div><div><label>開幕mp3 URL</label><input id="newOpeningMp3" placeholder="assets/opening.mp3 など"></div></div><button id="createSessionBtn" class="ok" style="margin-top:12px">公演を追加してURL生成</button><div id="createdBox" class="hidden"><div class="url"><strong>参加者URL</strong><br><span id="createdGameUrl"></span></div><div class="url"><strong>運営URL</strong><br><span id="createdAdminUrl"></span></div></div></section>
+
+        <section class="panel"><h2>進行操作</h2><div class="grid"><button data-screen="wait">待機</button><button data-screen="opening" class="blue">OP開始</button><button data-screen="question">問題</button><button data-screen="answer">判定</button><button data-screen="glitch" class="danger">グリッチ</button><button data-screen="blackout" class="dark">暗転</button><button data-screen="clear" class="ok">クリア</button><button data-screen="gameover" class="danger">失敗</button></div><label>参加者画面メッセージ</label><textarea id="screenMessage"></textarea><div class="grid" style="margin-top:10px"><button id="saveScreenMessageBtn">メッセージ反映</button><button id="lockBtn" class="danger">入力ロック</button><button id="unlockBtn" class="ok">ロック解除</button></div><label>タイマー秒数</label><input id="timerSeconds" type="number" value="60" min="1"><div class="grid" style="margin-top:10px"><button id="timerStartBtn" class="blue">タイマー開始</button><button id="timerStopBtn" class="dark">タイマー停止</button></div></section>
+
+        <section class="panel"><h2>YouTube操作</h2><label>現在のYouTube URL（1行に1つ）</label><textarea id="youtubeUrls"></textarea><div class="grid" style="margin-top:10px"><button id="saveYoutubeBtn" class="ok">保存</button><button id="ytShowBtn" class="blue">表示</button><button id="ytHideBtn" class="danger">非表示</button></div><div class="grid" style="margin-top:10px"><button id="ytPlayBtn" class="blue">再生</button><button id="ytPauseBtn" class="dark">停止</button><button id="ytNextBtn" class="blue">次へ</button><button id="ytRestartBtn">最初から</button></div><label>運営側YouTube音量：<span id="ytVolumeLabel">50</span>%</label><input id="ytVolume" type="range" min="0" max="100" value="50"><div class="grid" style="margin-top:10px"><button id="ytSoundOnBtn" class="ok">全体音声ON</button><button id="ytSoundOffBtn" class="danger">全体音声OFF</button></div></section>
+
+        <section class="panel"><h2>開幕画像 + mp3</h2><div class="two"><div><label>開幕画像URL</label><input id="openingImageUrl" placeholder="assets/opening.jpg"></div><div><label>mp3 URL</label><input id="openingMp3Url" placeholder="assets/opening.mp3"></div></div><label>mp3音量：<span id="openingVolumeLabel">50</span>%</label><input id="openingVolume" type="range" min="0" max="100" value="50"><div class="grid" style="margin-top:10px"><button id="saveOpeningBtn" class="ok">設定保存</button><button id="showOpeningNowBtn" class="blue">今すぐ表示</button><button id="showOpeningAfterVideoBtn" class="warn">動画後に表示</button><button id="hideOpeningBtn" class="dark">非表示</button><button id="restartOpeningAudioBtn">mp3最初から</button></div><p class="note">「動画後に表示」は、参加者側で今流れている動画が終わったタイミングで開幕画像に切り替わります。</p></section>
       </div>
 
       <div>
-        <button id="copyCurrentGameUrlBtn" class="ghost">現在の参加者URLをコピー</button>
+        <section class="panel"><h2>参加者</h2><div id="playersList" class="note">読み込み中...</div></section>
+        <section class="panel"><h2>運営メッセージ</h2><label>タイトル</label><input id="noticeTitle" value="運営からのお知らせ"><label>本文</label><textarea id="noticeBody" placeholder="参加者へ表示したい内容"></textarea><div class="grid" style="margin-top:10px"><button id="sendNoticeBtn" class="blue">モーダル送信</button><button id="clearNoticeBtn" class="dark">全メッセージ非表示</button></div><div id="messagesList" style="margin-top:12px"></div></section>
+        <section class="panel"><h2>公演一覧</h2><div id="sessionsList" class="note">読み込み中...</div></section>
+        <section class="panel"><h2>現在のFirebase状態</h2><div id="status" class="status">読み込み中...</div></section>
       </div>
     </div>
-
-    <section class="panel">
-      <h2>公演を追加</h2>
-
-      <div class="two">
-        <div>
-          <label>公演名</label>
-          <input id="newSessionTitle" type="text" placeholder="例：セレクトワード 8/10 11:00回">
-        </div>
-
-        <div>
-          <label>公演日時</label>
-          <input id="newSessionDateTime" type="datetime-local">
-        </div>
-      </div>
-
-      <div style="margin-top: 12px;">
-        <label>初期メッセージ</label>
-        <input id="newSessionMessage" type="text" value="開演までお待ちください。">
-      </div>
-
-      <div style="margin-top: 12px;">
-        <label>開演前YouTube動画URL</label>
-        <textarea id="newSessionYoutubeUrls" placeholder="1行に1つずつYouTube URLを入れてください。
-例：
-https://www.youtube.com/watch?v=xxxxxxxxxxx
-https://youtu.be/yyyyyyyyyyy"></textarea>
-        <p class="note">複数入れると、開演前に順番に再生されます。</p>
-      </div>
-
-      <div style="margin-top: 12px;">
-        <button id="createSessionBtn" class="green">公演を追加してURL生成</button>
-      </div>
-
-      <div id="createdUrls" class="hidden">
-        <h3 style="margin-top: 18px;">生成されたURL</h3>
-
-        <div class="urlbox">
-          <strong>参加者用URL</strong><br>
-          <span id="createdGameUrl"></span>
-        </div>
-        <div class="mini-grid">
-          <button id="copyGameUrlBtn">参加者URLをコピー</button>
-          <button id="openGameUrlBtn" class="blue">参加者画面を開く</button>
-        </div>
-
-        <div class="urlbox">
-          <strong>運営用URL</strong><br>
-          <span id="createdAdminUrl"></span>
-        </div>
-        <div class="mini-grid">
-          <button id="copyAdminUrlBtn">運営URLをコピー</button>
-          <button id="openAdminUrlBtn" class="blue">この公演を操作</button>
-        </div>
-      </div>
-    </section>
-
-    <section class="panel">
-      <h2>開演前YouTube操作</h2>
-
-      <p class="note">
-        音声ONは、参加者がゲーム画面で「音声ONで参加」を選んでいる場合のみ反映されます。
-      </p>
-
-      <div class="grid" style="margin-top: 12px;">
-        <button id="videoPlayBtn" class="blue">動画再生</button>
-        <button id="videoStopBtn" class="dark">動画ストップ</button>
-        <button id="videoSoundOnBtn" class="green">全体音声ON</button>
-        <button id="videoSoundOffBtn" class="danger">全体音声OFF</button>
-        <button id="videoNextBtn" class="blue">次の動画へ</button>
-        <button id="videoRestartBtn">最初から再生</button>
-      </div>
-
-      <div style="margin-top: 16px;">
-        <label>現在操作中の公演のYouTube URL</label>
-        <textarea id="currentYoutubeUrls" placeholder="1行に1つずつYouTube URLを入れてください。"></textarea>
-        <div class="grid" style="margin-top: 10px;">
-          <button id="saveCurrentYoutubeBtn" class="green">YouTube設定を保存</button>
-          <button id="disableYoutubeBtn" class="danger">YouTubeを非表示</button>
-          <button id="enableYoutubeBtn" class="blue">YouTubeを表示</button>
-        </div>
-      </div>
-    </section>
-
-    <section class="panel">
-      <h2>公演一覧</h2>
-      <div id="sessionList" class="note">読み込み中...</div>
-    </section>
-
-    <section class="panel">
-      <h2>画面操作</h2>
-      <div class="grid">
-        <button data-screen="wait">待機</button>
-        <button data-screen="opening" class="blue">OP開始</button>
-        <button data-screen="question">問題</button>
-        <button data-screen="answer">判定</button>
-        <button data-screen="glitch" class="danger">グリッチ</button>
-        <button data-screen="blackout" class="dark">暗転</button>
-        <button data-screen="clear" class="green">クリア</button>
-        <button data-screen="gameover" class="danger">ゲームオーバー</button>
-      </div>
-    </section>
-
-    <section class="panel">
-      <h2>メッセージ</h2>
-      <textarea id="messageInput" placeholder="参加者画面に表示する文章"></textarea>
-      <button id="sendMessageBtn" style="margin-top: 10px;">メッセージ反映</button>
-    </section>
-
-    <section class="panel">
-      <h2>タイマー</h2>
-      <input id="timerSeconds" type="number" min="1" value="60">
-      <div class="grid" style="margin-top: 10px;">
-        <button id="startTimerBtn" class="blue">タイマー開始</button>
-        <button id="stopTimerBtn" class="dark">タイマー停止</button>
-      </div>
-    </section>
-
-    <section class="panel">
-      <h2>入力ロック</h2>
-      <div class="grid">
-        <button id="lockBtn" class="danger">ロック</button>
-        <button id="unlockBtn" class="green">解除</button>
-      </div>
-    </section>
-
-    <section class="panel">
-      <h2>テンプレ進行</h2>
-      <div class="grid">
-        <button id="presetWait">開演待機</button>
-        <button id="presetStart" class="blue">ゲーム開始</button>
-        <button id="presetClear" class="green">成功演出</button>
-        <button id="presetFailed" class="danger">失敗演出</button>
-      </div>
-    </section>
-
-    <section class="panel">
-      <h2>現在の状態</h2>
-      <div id="status" class="status">読み込み中...</div>
-    </section>
   </main>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import {
-      getDatabase,
-      ref,
-      onValue,
-      update,
-      set
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+    import { getDatabase, ref, onValue, update, set, push } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-    import {
-      getAuth,
-      signInWithEmailAndPassword,
-      onAuthStateChanged
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    const firebaseConfig = { apiKey:"AIzaSyB4bBZIH9hP1sRBRwRWU4MNwVf91d9pgrQ", authDomain:"riddle-live-control.firebaseapp.com", databaseURL:"https://riddle-live-control-default-rtdb.asia-southeast1.firebasedatabase.app/", projectId:"riddle-live-control", storageBucket:"riddle-live-control.firebasestorage.app", messagingSenderId:"750925660526", appId:"1:750925660526:web:5678b5a966ed43ce19017f" };
+    const app = initializeApp(firebaseConfig); const db=getDatabase(app); const auth=getAuth(app);
+    const sessionId = new URLSearchParams(location.search).get("session") || "selectword_test";
+    let serverOffset=0,currentSession={},players={},messages={};
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyB4bBZIH9hP1sRBRwRWU4MNwVf91d9pgrQ",
-      authDomain: "riddle-live-control.firebaseapp.com",
-      databaseURL: "https://riddle-live-control-default-rtdb.asia-southeast1.firebasedatabase.app/",
-      projectId: "riddle-live-control",
-      storageBucket: "riddle-live-control.firebasestorage.app",
-      messagingSenderId: "750925660526",
-      appId: "1:750925660526:web:5678b5a966ed43ce19017f"
-    };
+    const $ = id => document.getElementById(id);
+    $("sessionName").textContent=sessionId;
+    onValue(ref(db,".info/serverTimeOffset"),s=>serverOffset=s.val()||0);
+    $("loginBtn").addEventListener("click",async()=>{try{$("loginMsg").textContent="ログイン中...";await signInWithEmailAndPassword(auth,$("email").value.trim(),$("password").value)}catch(e){$("loginMsg").textContent="ログインできませんでした。";console.error(e)}});
+    onAuthStateChanged(auth,u=>{if(!u)return;$("loginPanel").classList.add("hidden");$("adminPanel").classList.remove("hidden");watch();});
 
-    const firebaseApp = initializeApp(firebaseConfig);
-    const db = getDatabase(firebaseApp);
-    const auth = getAuth(firebaseApp);
-
-    const params = new URLSearchParams(location.search);
-    const sessionId = params.get("session") || "selectword_test";
-
-    const loginPanel = document.getElementById("loginPanel");
-    const adminPanel = document.getElementById("adminPanel");
-    const loginMessage = document.getElementById("loginMessage");
-    const statusEl = document.getElementById("status");
-    const messageInput = document.getElementById("messageInput");
-    const sessionList = document.getElementById("sessionList");
-    const currentYoutubeUrls = document.getElementById("currentYoutubeUrls");
-
-    const createdUrls = document.getElementById("createdUrls");
-    const createdGameUrl = document.getElementById("createdGameUrl");
-    const createdAdminUrl = document.getElementById("createdAdminUrl");
-
-    let serverOffset = 0;
-    let latestGameUrl = "";
-    let latestAdminUrl = "";
-    let currentSessionData = null;
-
-    document.getElementById("sessionName").textContent = sessionId;
-
-    onValue(ref(db, ".info/serverTimeOffset"), snapshot => {
-      serverOffset = snapshot.val() || 0;
-    });
-
-    document.getElementById("loginBtn").addEventListener("click", async () => {
-      const email = document.getElementById("email").value.trim();
-      const password = document.getElementById("password").value;
-
-      try {
-        loginMessage.textContent = "ログイン中...";
-        await signInWithEmailAndPassword(auth, email, password);
-      } catch (error) {
-        loginMessage.textContent = "ログインできませんでした。メールアドレス・パスワードを確認してください。";
-        console.error(error);
-      }
-    });
-
-    onAuthStateChanged(auth, user => {
-      if (!user) return;
-
-      loginPanel.classList.add("hidden");
-      adminPanel.classList.remove("hidden");
-
-      watchCurrentSession();
-      watchSessionList();
-    });
-
-    function watchCurrentSession() {
-      onValue(ref(db, `sessions/${sessionId}`), snapshot => {
-        const state = snapshot.val() || {};
-        currentSessionData = state;
-
-        statusEl.textContent = JSON.stringify(state, null, 2);
-
-        if (document.activeElement !== messageInput) {
-          messageInput.value = state.message || "";
-        }
-
-        if (document.activeElement !== currentYoutubeUrls) {
-          const playlist = state.videoControl?.playlist || [];
-          currentYoutubeUrls.value = playlist.map(id => `https://www.youtube.com/watch?v=${id}`).join("\n");
-        }
-      });
+    function watch(){
+      onValue(ref(db,`sessions/${sessionId}`),s=>{currentSession=s.val()||{};renderCurrent();});
+      onValue(ref(db,`sessions/${sessionId}/players`),s=>{players=s.val()||{};renderPlayers();renderMessages();});
+      onValue(ref(db,`sessions/${sessionId}/messages`),s=>{messages=s.val()||{};renderMessages();});
+      onValue(ref(db,"sessions"),s=>renderSessions(s.val()||{}));
     }
 
-    function watchSessionList() {
-      onValue(ref(db, "sessions"), snapshot => {
-        const sessions = snapshot.val();
-
-        if (!sessions) {
-          sessionList.textContent = "まだ公演がありません。";
-          return;
-        }
-
-        const entries = Object.entries(sessions).sort((a, b) => {
-          const aTime = a[1].eventAt || "";
-          const bTime = b[1].eventAt || "";
-          return String(aTime).localeCompare(String(bTime));
-        });
-
-        sessionList.innerHTML = "";
-
-        entries.forEach(([id, data]) => {
-          const gameUrl = buildGameUrl(id);
-          const adminUrl = buildAdminUrl(id);
-
-          const playlistCount = data.videoControl?.playlist?.length || 0;
-
-          const card = document.createElement("div");
-          card.className = "session-card";
-
-          card.innerHTML = `
-            <h3>
-              ${escapeHtml(data.title || "無題の公演")}
-              ${id === sessionId ? `<span class="active-badge">操作中</span>` : ""}
-            </h3>
-            <div class="session-id">ID: ${escapeHtml(id)}</div>
-            <div class="note">
-              日時：${escapeHtml(formatEventAt(data.eventAt))}<br>
-              YouTube動画：${playlistCount}本
-            </div>
-
-            <div class="urlbox">
-              <strong>参加者用URL</strong><br>
-              ${escapeHtml(gameUrl)}
-            </div>
-
-            <div class="mini-grid">
-              <button data-copy="${escapeHtml(gameUrl)}">参加者URLコピー</button>
-              <button data-open="${escapeHtml(gameUrl)}" class="blue">参加者画面</button>
-              <button data-open="${escapeHtml(adminUrl)}" class="green">この公演を操作</button>
-            </div>
-          `;
-
-          sessionList.appendChild(card);
-        });
-
-        sessionList.querySelectorAll("[data-copy]").forEach(button => {
-          button.addEventListener("click", () => {
-            copyText(button.dataset.copy);
-          });
-        });
-
-        sessionList.querySelectorAll("[data-open]").forEach(button => {
-          button.addEventListener("click", () => {
-            location.href = button.dataset.open;
-          });
-        });
-      });
+    function renderCurrent(){
+      $("status").textContent=JSON.stringify(currentSession,null,2);
+      const control=currentSession.control||currentSession;
+      const yt=currentSession.media?.youtube||currentSession.videoControl||{};
+      const op=currentSession.media?.opening||{};
+      if(document.activeElement!==$("screenMessage")) $("screenMessage").value=control.message||"";
+      if(document.activeElement!==$("youtubeUrls")) $("youtubeUrls").value=(yt.playlist||[]).map(id=>`https://www.youtube.com/watch?v=${id}`).join("\n");
+      if(document.activeElement!==$("openingImageUrl")) $("openingImageUrl").value=op.imageUrl||"";
+      if(document.activeElement!==$("openingMp3Url")) $("openingMp3Url").value=op.mp3Url||"";
+      $("ytVolume").value=yt.volume??50;$("ytVolumeLabel").textContent=$("ytVolume").value;
+      $("openingVolume").value=op.volume??50;$("openingVolumeLabel").textContent=$("openingVolume").value;
     }
-
-    document.getElementById("createSessionBtn").addEventListener("click", async () => {
-      const title = document.getElementById("newSessionTitle").value.trim();
-      const eventAt = document.getElementById("newSessionDateTime").value;
-      const initialMessage = document.getElementById("newSessionMessage").value.trim() || "開演までお待ちください。";
-      const youtubeText = document.getElementById("newSessionYoutubeUrls").value.trim();
-
-      if (!title) {
-        alert("公演名を入力してください。");
-        return;
-      }
-
-      if (!eventAt) {
-        alert("公演日時を入力してください。");
-        return;
-      }
-
-      const playlist = extractYouTubeIds(youtubeText);
-      const newSessionId = generateSessionId(title, eventAt);
-      const now = Date.now() + serverOffset;
-
-      const data = {
-        title,
-        eventAt,
-        screen: "wait",
-        message: initialMessage,
-        locked: true,
-        timerEndAt: null,
-        started: false,
-        createdAt: now,
-        updatedAt: now,
-        videoControl: {
-          enabled: playlist.length > 0,
-          playlist,
-          index: 0,
-          playing: playlist.length > 0,
-          muted: true,
-          command: "init",
-          commandId: 0,
-          updatedAt: now
-        }
-      };
-
-      try {
-        await set(ref(db, `sessions/${newSessionId}`), data);
-
-        latestGameUrl = buildGameUrl(newSessionId);
-        latestAdminUrl = buildAdminUrl(newSessionId);
-
-        createdGameUrl.textContent = latestGameUrl;
-        createdAdminUrl.textContent = latestAdminUrl;
-        createdUrls.classList.remove("hidden");
-
-        alert("公演を追加しました。参加者URLを案内できます。");
-      } catch (error) {
-        alert("公演を追加できませんでした。FirebaseのRulesやログイン状態を確認してください。");
-        console.error(error);
-      }
-    });
-
-    document.getElementById("saveCurrentYoutubeBtn").addEventListener("click", async () => {
-      const playlist = extractYouTubeIds(currentYoutubeUrls.value);
-      const now = Date.now() + serverOffset;
-
-      await update(ref(db, `sessions/${sessionId}/videoControl`), {
-        enabled: playlist.length > 0,
-        playlist,
-        index: 0,
-        playing: playlist.length > 0,
-        muted: true,
-        command: "reload",
-        commandId: Date.now(),
-        updatedAt: now
-      });
-
-      alert("YouTube設定を保存しました。");
-    });
-
-    document.getElementById("disableYoutubeBtn").addEventListener("click", () => {
-      update(ref(db, `sessions/${sessionId}/videoControl`), {
-        enabled: false,
-        playing: false,
-        command: "stop",
-        commandId: Date.now(),
-        updatedAt: Date.now() + serverOffset
-      });
-    });
-
-    document.getElementById("enableYoutubeBtn").addEventListener("click", () => {
-      update(ref(db, `sessions/${sessionId}/videoControl`), {
-        enabled: true,
-        command: "reload",
-        commandId: Date.now(),
-        updatedAt: Date.now() + serverOffset
-      });
-    });
-
-    document.getElementById("videoPlayBtn").addEventListener("click", () => {
-      sendVideoCommand("play", {
-        playing: true
-      });
-    });
-
-    document.getElementById("videoStopBtn").addEventListener("click", () => {
-      sendVideoCommand("pause", {
-        playing: false
-      });
-    });
-
-    document.getElementById("videoSoundOnBtn").addEventListener("click", () => {
-      sendVideoCommand("unmute", {
-        muted: false
-      });
-    });
-
-    document.getElementById("videoSoundOffBtn").addEventListener("click", () => {
-      sendVideoCommand("mute", {
-        muted: true
-      });
-    });
-
-    document.getElementById("videoNextBtn").addEventListener("click", () => {
-      sendVideoCommand("next", {
-        playing: true
-      });
-    });
-
-    document.getElementById("videoRestartBtn").addEventListener("click", () => {
-      sendVideoCommand("restart", {
-        playing: true
-      });
-    });
-
-    async function sendVideoCommand(command, extra = {}) {
-      const now = Date.now() + serverOffset;
-
-      try {
-        await update(ref(db, `sessions/${sessionId}/videoControl`), {
-          ...extra,
-          command,
-          commandId: Date.now(),
-          updatedAt: now
-        });
-      } catch (error) {
-        alert("動画操作に失敗しました。ログイン状態やRulesを確認してください。");
-        console.error(error);
-      }
-    }
-
-    document.getElementById("copyGameUrlBtn").addEventListener("click", () => {
-      copyText(latestGameUrl);
-    });
-
-    document.getElementById("copyAdminUrlBtn").addEventListener("click", () => {
-      copyText(latestAdminUrl);
-    });
-
-    document.getElementById("openGameUrlBtn").addEventListener("click", () => {
-      if (latestGameUrl) window.open(latestGameUrl, "_blank");
-    });
-
-    document.getElementById("openAdminUrlBtn").addEventListener("click", () => {
-      if (latestAdminUrl) location.href = latestAdminUrl;
-    });
-
-    document.getElementById("copyCurrentGameUrlBtn").addEventListener("click", () => {
-      copyText(buildGameUrl(sessionId));
-    });
-
-    document.querySelectorAll("[data-screen]").forEach(button => {
-      button.addEventListener("click", () => {
-        setState({
-          screen: button.dataset.screen
-        });
-      });
-    });
-
-    document.getElementById("sendMessageBtn").addEventListener("click", () => {
-      setState({
-        message: messageInput.value
-      });
-    });
-
-    document.getElementById("startTimerBtn").addEventListener("click", () => {
-      const seconds = Number(document.getElementById("timerSeconds").value || 60);
-      const serverNow = Date.now() + serverOffset;
-
-      setState({
-        timerEndAt: serverNow + seconds * 1000
-      });
-    });
-
-    document.getElementById("stopTimerBtn").addEventListener("click", () => {
-      setState({
-        timerEndAt: null
-      });
-    });
-
-    document.getElementById("lockBtn").addEventListener("click", () => {
-      setState({
-        locked: true
-      });
-    });
-
-    document.getElementById("unlockBtn").addEventListener("click", () => {
-      setState({
-        locked: false
-      });
-    });
-
-    document.getElementById("presetWait").addEventListener("click", () => {
-      setState({
-        screen: "wait",
-        message: "開演までお待ちください。",
-        locked: true,
-        timerEndAt: null,
-        started: false
-      });
-    });
-
-    document.getElementById("presetStart").addEventListener("click", () => {
-      setState({
-        screen: "opening",
-        message: "システムを起動します。\n準備はよろしいですか？",
-        locked: false,
-        timerEndAt: null,
-        started: true
-      });
-    });
-
-    document.getElementById("presetClear").addEventListener("click", () => {
-      setState({
-        screen: "clear",
-        message: "システムの奪還に成功しました。",
-        locked: true,
-        timerEndAt: null
-      });
-    });
-
-    document.getElementById("presetFailed").addEventListener("click", () => {
-      setState({
-        screen: "gameover",
-        message: "システムの奪還に失敗しました。",
-        locked: true,
-        timerEndAt: null
-      });
-    });
-
-    async function setState(data) {
-      const payload = {
-        ...data,
-        commandId: Date.now(),
-        updatedAt: Date.now() + serverOffset
-      };
-
-      try {
-        await update(ref(db, `sessions/${sessionId}`), payload);
-      } catch (error) {
-        alert("更新できませんでした。FirebaseのRules、UID、ログイン状態を確認してください。");
-        console.error(error);
-      }
-    }
-
-    function extractYouTubeIds(text) {
-      if (!text) return [];
-
-      const parts = text
-        .split(/[\n,]+/)
-        .map(v => v.trim())
-        .filter(Boolean);
-
-      const ids = [];
-
-      parts.forEach(part => {
-        const id = extractYouTubeId(part);
-        if (id && !ids.includes(id)) {
-          ids.push(id);
-        }
-      });
-
-      return ids;
-    }
-
-    function extractYouTubeId(value) {
-      if (!value) return "";
-
-      const trimmed = value.trim();
-
-      if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) {
-        return trimmed;
-      }
-
-      try {
-        const url = new URL(trimmed);
-
-        if (url.hostname.includes("youtu.be")) {
-          return url.pathname.replace("/", "").split("/")[0].trim();
-        }
-
-        if (url.hostname.includes("youtube.com")) {
-          if (url.searchParams.get("v")) {
-            return url.searchParams.get("v").trim();
-          }
-
-          const embedMatch = url.pathname.match(/\/embed\/([^/?]+)/);
-          if (embedMatch) return embedMatch[1].trim();
-
-          const shortsMatch = url.pathname.match(/\/shorts\/([^/?]+)/);
-          if (shortsMatch) return shortsMatch[1].trim();
-        }
-      } catch (error) {
-        return "";
-      }
-
-      return "";
-    }
-
-    function generateSessionId(title, eventAt) {
-      const datePart = eventAt
-        .replaceAll("-", "")
-        .replaceAll(":", "")
-        .replace("T", "_");
-
-      const titlePart = title
-        .toLowerCase()
-        .replace(/[^\w\u3040-\u30ff\u3400-\u9fff]+/g, "_")
-        .replace(/^_+|_+$/g, "")
-        .slice(0, 20) || "event";
-
-      const randomPart = Math.random().toString(36).slice(2, 8);
-
-      return `${titlePart}_${datePart}_${randomPart}`;
-    }
-
-    function buildGameUrl(id) {
-      const url = new URL(location.href);
-      url.search = "";
-      url.hash = "";
-
-      if (url.pathname.endsWith("admin.html")) {
-        url.pathname = url.pathname.replace(/admin\.html$/, "game.html");
-      } else {
-        url.pathname = url.pathname.replace(/\/$/, "") + "/game.html";
-      }
-
-      url.searchParams.set("session", id);
-      return url.toString();
-    }
-
-    function buildAdminUrl(id) {
-      const url = new URL(location.href);
-      url.search = "";
-      url.hash = "";
-
-      if (!url.pathname.endsWith("admin.html")) {
-        url.pathname = url.pathname.replace(/\/$/, "") + "/admin.html";
-      }
-
-      url.searchParams.set("session", id);
-      return url.toString();
-    }
-
-    async function copyText(text) {
-      if (!text) return;
-
-      try {
-        await navigator.clipboard.writeText(text);
-        alert("コピーしました。");
-      } catch (error) {
-        prompt("コピーしてください。", text);
-      }
-    }
-
-    function formatEventAt(value) {
-      if (!value) return "未設定";
-
-      const date = new Date(value);
-      if (Number.isNaN(date.getTime())) return value;
-
-      const y = date.getFullYear();
-      const m = String(date.getMonth() + 1).padStart(2, "0");
-      const d = String(date.getDate()).padStart(2, "0");
-      const h = String(date.getHours()).padStart(2, "0");
-      const min = String(date.getMinutes()).padStart(2, "0");
-
-      return `${y}/${m}/${d} ${h}:${min}`;
-    }
-
-    function escapeHtml(value) {
-      return String(value)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
-    }
+    function renderPlayers(){const arr=Object.entries(players);const online=arr.filter(([,p])=>p.online).length;$("onlineCount").textContent=online;$("totalCount").textContent=arr.length;if(!arr.length){$("playersList").textContent="まだ参加者はいません。";return;}$("playersList").innerHTML=arr.sort((a,b)=>(b[1].online?1:0)-(a[1].online?1:0)).map(([id,p])=>`<div class="player-row ${p.online?"":"offline"}"><div><strong>${esc(p.name||"名無し")}</strong><br><span class="note">${p.online?"オンライン":"オフライン"} / 音声:${p.soundEnabled?"ON":"OFF"} / 音量:${p.volume??50}%</span></div><span class="badge ${p.online?"online":""}">${p.online?"IN":"OUT"}</span></div>`).join("");}
+    function renderMessages(){const msgEntries=Object.entries(messages).sort((a,b)=>(b[1].createdAt||0)-(a[1].createdAt||0));if(!msgEntries.length){$("messagesList").innerHTML="<p class='note'>送信済みメッセージはありません。</p>";return;}const playerEntries=Object.entries(players);$("messagesList").innerHTML=msgEntries.map(([id,m])=>{const reads=m.reads||{};const readNames=Object.values(reads).map(r=>r.name||"名無し");const unread=playerEntries.filter(([uid])=>!reads[uid]).map(([,p])=>p.name||"名無し");return `<div class="card"><h3>${esc(m.title||"運営からのお知らせ")} ${m.active?"<span class='badge online'>表示中</span>":"<span class='badge'>非表示</span>"}</h3><div class="note">${esc(m.body||"")}</div><div class="read-list"><span class="badge online">既読 ${readNames.length}</span>${readNames.map(n=>`<span class="badge">${esc(n)}</span>`).join("")}</div><div class="read-list"><span class="badge">未読 ${unread.length}</span>${unread.map(n=>`<span class="badge">${esc(n)}</span>`).join("")}</div><div class="mini"><button data-hide-msg="${id}" class="dark">非表示</button></div></div>`;}).join("");document.querySelectorAll("[data-hide-msg]").forEach(b=>b.onclick=()=>update(ref(db,`sessions/${sessionId}/messages/${b.dataset.hideMsg}`),{active:false}));}
+    function renderSessions(sessions){const entries=Object.entries(sessions).sort((a,b)=>String(a[1].eventAt||"").localeCompare(String(b[1].eventAt||"")));if(!entries.length){$("sessionsList").textContent="まだ公演がありません。";return;}$("sessionsList").innerHTML=entries.map(([id,s])=>`<div class="card ${id===sessionId?"current":""}"><h3>${esc(s.title||id)}</h3><div class="note">${esc(s.eventAt||"日時未設定")}<br>ID: ${esc(id)}</div><div class="url">${esc(buildGameUrl(id))}</div><div class="mini"><button data-copy="${esc(buildGameUrl(id))}">参加者URLコピー</button><button data-go="${esc(buildAdminUrl(id))}" class="ok">操作</button></div></div>`).join("");document.querySelectorAll("[data-copy]").forEach(b=>b.onclick=()=>copy(b.dataset.copy));document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>location.href=b.dataset.go);}
+
+    $("createSessionBtn").onclick=async()=>{const title=$("newTitle").value.trim();const eventAt=$("newEventAt").value; if(!title||!eventAt){alert("公演名と日時を入力してください。");return;} const id=makeSessionId(title,eventAt);const playlist=extractYouTubeIds($("newYoutubeUrls").value);const now=Date.now()+serverOffset;const data={title,eventAt,control:{screen:"wait",message:$("newMessage").value||"開演までお待ちください。",locked:true,timerEndAt:null,command:"init",commandId:0},media:{youtube:{enabled:playlist.length>0,playlist,playing:playlist.length>0,mutedByAdmin:true,volume:50,command:"init",commandId:0},opening:{enabled:Boolean($("newOpeningImage").value||$("newOpeningMp3").value),imageUrl:$("newOpeningImage").value.trim(),mp3Url:$("newOpeningMp3").value.trim(),volume:50,loop:true,showing:false,pendingAfterVideo:false,command:"init",commandId:0}},players:{},messages:{},createdAt:now,updatedAt:now};await set(ref(db,`sessions/${id}`),data);$("createdGameUrl").textContent=buildGameUrl(id);$("createdAdminUrl").textContent=buildAdminUrl(id);$("createdBox").classList.remove("hidden");alert("公演を追加しました。");};
+    document.querySelectorAll("[data-screen]").forEach(b=>b.onclick=()=>setControl({screen:b.dataset.screen}));
+    $("saveScreenMessageBtn").onclick=()=>setControl({message:$("screenMessage").value});$("lockBtn").onclick=()=>setControl({locked:true});$("unlockBtn").onclick=()=>setControl({locked:false});$("timerStartBtn").onclick=()=>setControl({timerEndAt:Date.now()+serverOffset+Number($("timerSeconds").value||60)*1000});$("timerStopBtn").onclick=()=>setControl({timerEndAt:null});
+    async function setControl(data){await update(ref(db,`sessions/${sessionId}/control`),{...data,commandId:Date.now(),updatedAt:Date.now()+serverOffset});}
+
+    $("ytVolume").oninput=()=>$("ytVolumeLabel").textContent=$("ytVolume").value;$("openingVolume").oninput=()=>$("openingVolumeLabel").textContent=$("openingVolume").value;
+    $("saveYoutubeBtn").onclick=()=>update(ref(db,`sessions/${sessionId}/media/youtube`),{enabled:extractYouTubeIds($("youtubeUrls").value).length>0,playlist:extractYouTubeIds($("youtubeUrls").value),volume:Number($("ytVolume").value),command:"reload",commandId:Date.now(),updatedAt:Date.now()+serverOffset});
+    $("ytShowBtn").onclick=()=>ytCommand("reload",{enabled:true});$("ytHideBtn").onclick=()=>ytCommand("stop",{enabled:false,playing:false});$("ytPlayBtn").onclick=()=>ytCommand("play",{playing:true});$("ytPauseBtn").onclick=()=>ytCommand("pause",{playing:false});$("ytNextBtn").onclick=()=>ytCommand("next",{playing:true});$("ytRestartBtn").onclick=()=>ytCommand("restart",{playing:true});$("ytSoundOnBtn").onclick=()=>ytCommand("unmute",{mutedByAdmin:false});$("ytSoundOffBtn").onclick=()=>ytCommand("mute",{mutedByAdmin:true});
+    async function ytCommand(command,extra={}){await update(ref(db,`sessions/${sessionId}/media/youtube`),{...extra,volume:Number($("ytVolume").value),command,commandId:Date.now(),updatedAt:Date.now()+serverOffset});}
+
+    $("saveOpeningBtn").onclick=()=>update(ref(db,`sessions/${sessionId}/media/opening`),{enabled:true,imageUrl:$("openingImageUrl").value.trim(),mp3Url:$("openingMp3Url").value.trim(),volume:Number($("openingVolume").value),loop:true,command:"save",commandId:Date.now(),updatedAt:Date.now()+serverOffset});
+    $("showOpeningNowBtn").onclick=()=>update(ref(db,`sessions/${sessionId}/media/opening`),{enabled:true,showing:true,pendingAfterVideo:false,imageUrl:$("openingImageUrl").value.trim(),mp3Url:$("openingMp3Url").value.trim(),volume:Number($("openingVolume").value),command:"show",commandId:Date.now(),updatedAt:Date.now()+serverOffset});
+    $("showOpeningAfterVideoBtn").onclick=()=>update(ref(db,`sessions/${sessionId}/media/opening`),{enabled:true,showing:false,pendingAfterVideo:true,imageUrl:$("openingImageUrl").value.trim(),mp3Url:$("openingMp3Url").value.trim(),volume:Number($("openingVolume").value),command:"afterVideo",commandId:Date.now(),updatedAt:Date.now()+serverOffset});
+    $("hideOpeningBtn").onclick=()=>update(ref(db,`sessions/${sessionId}/media/opening`),{showing:false,pendingAfterVideo:false,command:"hide",commandId:Date.now(),updatedAt:Date.now()+serverOffset});
+    $("restartOpeningAudioBtn").onclick=()=>update(ref(db,`sessions/${sessionId}/media/opening`),{command:"restart",commandId:Date.now(),updatedAt:Date.now()+serverOffset});
+
+    $("sendNoticeBtn").onclick=async()=>{const body=$("noticeBody").value.trim(); if(!body){alert("本文を入力してください。");return;} await set(push(ref(db,`sessions/${sessionId}/messages`)),{title:$("noticeTitle").value.trim()||"運営からのお知らせ",body,active:true,createdAt:Date.now()+serverOffset,reads:{}});$("noticeBody").value="";};
+    $("clearNoticeBtn").onclick=async()=>{for(const id of Object.keys(messages)) await update(ref(db,`sessions/${sessionId}/messages/${id}`),{active:false});};
+    $("copyGameBtn").onclick=()=>copy(buildGameUrl(sessionId));$("openGameBtn").onclick=()=>window.open(buildGameUrl(sessionId),"_blank");
+
+    function extractYouTubeIds(text){return [...new Set(String(text||"").split(/[\n,]+/).map(v=>extractYouTubeId(v.trim())).filter(Boolean))];}
+    function extractYouTubeId(v){if(!v)return"";if(/^[a-zA-Z0-9_-]{11}$/.test(v))return v;try{const u=new URL(v);if(u.hostname.includes("youtu.be"))return u.pathname.replace(/^\//,"").split("/")[0];if(u.hostname.includes("youtube.com")){if(u.searchParams.get("v"))return u.searchParams.get("v");const e=u.pathname.match(/\/(embed|shorts)\/([^/?]+)/);if(e)return e[2];}}catch{}return"";}
+    function makeSessionId(title,eventAt){const d=eventAt.replaceAll("-","").replaceAll(":","").replace("T","_");const t=title.toLowerCase().replace(/[^\w\u3040-\u30ff\u3400-\u9fff]+/g,"_").replace(/^_+|_+$/g,"").slice(0,18)||"event";return `${t}_${d}_${Math.random().toString(36).slice(2,8)}`;}
+    function buildGameUrl(id){const u=new URL(location.href);u.search="";u.hash="";u.pathname=u.pathname.endsWith("admin.html")?u.pathname.replace(/admin\.html$/,"game.html"):u.pathname.replace(/\/$/,"")+"/game.html";u.searchParams.set("session",id);return u.toString();}
+    function buildAdminUrl(id){const u=new URL(location.href);u.search="";u.hash="";if(!u.pathname.endsWith("admin.html"))u.pathname=u.pathname.replace(/\/$/,"")+"/admin.html";u.searchParams.set("session",id);return u.toString();}
+    async function copy(text){try{await navigator.clipboard.writeText(text);alert("コピーしました。");}catch{prompt("コピーしてください",text)}}
+    function esc(v){return String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");}
   </script>
 </body>
 </html>
