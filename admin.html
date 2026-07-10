@@ -44,7 +44,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getDatabase, ref, onValue, update, set, push, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey:"AIzaSyB4bBZIH9hP1sRBRwRWU4MNwVf91d9pgrQ",
@@ -81,8 +81,25 @@
       }
     };
 
-    onAuthStateChanged(auth, user => {
-      if (!user) return;
+    onAuthStateChanged(auth, async user => {
+      if (!user) {
+        $("loginPanel").classList.remove("hidden");
+        $("adminPanel").classList.add("hidden");
+        return;
+      }
+
+      // game.html の匿名ログイン状態が同じドメインで残っていることがあります。
+      // 匿名ユーザーは運営権限を持たないので、admin.html では必ずメール/パスワードログインに戻します。
+      if (user.isAnonymous) {
+        await signOut(auth);
+        $("loginMsg").textContent = "参加者用の匿名ログイン状態だったため、運営アカウントでログインし直してください。";
+        $("loginPanel").classList.remove("hidden");
+        $("adminPanel").classList.add("hidden");
+        return;
+      }
+
+      console.log("ADMIN LOGIN UID:", user.uid);
+      $("loginMsg").textContent = "";
       $("loginPanel").classList.add("hidden");
       $("adminPanel").classList.remove("hidden");
       watch();
