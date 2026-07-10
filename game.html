@@ -6,65 +6,64 @@
   <title>RIDDLE LIVE GAME</title>
   <style>
     :root{
-      --bg:#050506; --panel:#111114; --panel2:#18181d; --text:#f5f5f7; --muted:#9a9aa3;
-      --line:rgba(255,255,255,.14); --accent:#fff; --danger:#ff5656; --ok:#61d394;
+      --bg:#050506; --panel:#121216; --text:#f6f6f8; --muted:#a5a5ad;
+      --line:rgba(255,255,255,.14); --ok:#61d394; --danger:#ff6262; --blue:#5aa7ff;
     }
     *{box-sizing:border-box}
     html,body{height:100%}
-    body{
-      margin:0; background:radial-gradient(circle at 50% -10%, #22232b 0%, #08080a 52%, #000 100%);
-      color:var(--text); font-family:system-ui,-apple-system,BlinkMacSystemFont,"Noto Sans JP",sans-serif;
-      overflow-x:hidden;
-    }
-    button,input,textarea{font:inherit}
-    .app{
-      min-height:100dvh; width:100%; display:flex; align-items:center; justify-content:center;
-      padding:clamp(14px,3vw,34px);
-    }
-    .stage{
-      width:min(100%,1080px); min-height:min(760px,calc(100dvh - 28px));
-      border:1px solid var(--line); border-radius:28px; background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.025));
-      box-shadow:0 30px 90px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.08);
-      padding:clamp(16px,3vw,32px); position:relative; overflow:hidden;
-      display:flex; flex-direction:column; justify-content:center; text-align:center;
-    }
-    .topline{display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:16px; color:var(--muted); font-size:12px; letter-spacing:.14em; text-transform:uppercase}
-    .pill{border:1px solid var(--line); border-radius:999px; padding:7px 10px; background:rgba(0,0,0,.25); letter-spacing:.08em; white-space:nowrap}
-    h1{margin:0 0 14px; font-size:clamp(36px,8vw,84px); letter-spacing:.08em; line-height:1.05}
-    .message{font-size:clamp(16px,3.8vw,27px); line-height:1.85; white-space:pre-wrap; margin:0 auto; max-width:820px}
-    .timer{font-size:clamp(48px,15vw,104px); font-weight:900; letter-spacing:.08em; margin-top:20px}
-    .video-shell{
-      width:min(100%,880px); margin:0 auto 22px; border-radius:18px; overflow:hidden;
-      background:#000; border:1px solid rgba(255,255,255,.15); box-shadow:0 20px 60px rgba(0,0,0,.45);
-    }
-    .video-inner{width:100%; aspect-ratio:16 / 9; position:relative; overflow:hidden; background:#000}
-    .video-inner iframe,.video-inner #ytPlayer{position:absolute; inset:0; width:100% !important; height:100% !important; display:block; border:0}
-    .opening-visual{width:min(100%,880px); margin:0 auto 22px; border-radius:18px; overflow:hidden; border:1px solid rgba(255,255,255,.15); background:#000; box-shadow:0 20px 60px rgba(0,0,0,.45)}
-    .opening-visual img{width:100%; max-height:min(64dvh,620px); object-fit:contain; display:block; background:#000}
-    .media-status{display:flex; justify-content:center; flex-wrap:wrap; gap:8px; color:#c6c6cc; font-size:12px; margin:-6px auto 18px}
-    .locked{margin-top:18px; color:#ff8b8b; font-weight:800; letter-spacing:.12em; font-size:13px}
-    .actions{position:fixed; right:14px; bottom:14px; z-index:50; display:flex; flex-direction:column; gap:8px}
-    .float-btn{border:1px solid rgba(255,255,255,.22); color:#fff; background:rgba(0,0,0,.72); border-radius:999px; padding:11px 14px; font-weight:800; cursor:pointer; backdrop-filter:blur(10px)}
-    .modal-bg{position:fixed; inset:0; background:rgba(0,0,0,.76); z-index:80; display:none; align-items:center; justify-content:center; padding:18px}
+    body{margin:0;background:radial-gradient(circle at 50% -12%,#242631 0%,#08080a 55%,#000 100%);color:var(--text);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Noto Sans JP",sans-serif;overflow-x:hidden}
+    button,input{font:inherit}
+    .app{min-height:100dvh;width:100%;display:flex;align-items:center;justify-content:center;padding:clamp(10px,3vw,32px)}
+    .stage{width:min(100%,1080px);min-height:min(760px,calc(100dvh - 20px));border:1px solid var(--line);border-radius:28px;background:linear-gradient(180deg,rgba(255,255,255,.075),rgba(255,255,255,.025));box-shadow:0 30px 90px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.08);padding:clamp(14px,3vw,30px);display:flex;flex-direction:column;justify-content:center;text-align:center;overflow:hidden}
+    .topline{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:16px;color:var(--muted);font-size:12px;letter-spacing:.12em;text-transform:uppercase}
+    .pill{border:1px solid var(--line);border-radius:999px;padding:7px 10px;background:rgba(0,0,0,.28);white-space:nowrap;font-size:12px;color:#dcdce2}
+    h1{margin:0 0 14px;font-size:clamp(34px,8vw,82px);line-height:1.05;letter-spacing:.08em}
+    .message{font-size:clamp(16px,3.7vw,27px);line-height:1.85;white-space:pre-wrap;max-width:840px;margin:0 auto}
+    .timer{font-size:clamp(46px,15vw,104px);font-weight:900;letter-spacing:.08em;margin-top:18px}
+    .locked{margin-top:18px;color:#ff8b8b;font-size:13px;font-weight:900;letter-spacing:.14em}
+    .video-shell,.opening-visual{width:min(100%,880px);margin:0 auto 18px;border-radius:18px;overflow:hidden;background:#000;border:1px solid rgba(255,255,255,.15);box-shadow:0 20px 60px rgba(0,0,0,.45)}
+    .video-inner{width:100%;aspect-ratio:16/9;position:relative;background:#000;overflow:hidden}
+    #ytHost,#ytPlayer,.video-inner iframe{position:absolute;inset:0;width:100%!important;height:100%!important;border:0;display:block}
+    .opening-visual img{width:100%;max-height:min(64dvh,620px);object-fit:contain;display:block;background:#000}
+    .opening-empty{padding:80px 20px;color:#aaa}
+    .hidden{display:none!important}
+    .media-status{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin:-4px auto 18px;color:#c9c9d0}
+    .actions{position:fixed;right:14px;bottom:14px;z-index:50;display:flex;flex-direction:column;gap:8px;align-items:flex-end}
+    .float-btn{border:1px solid rgba(255,255,255,.22);color:#fff;background:rgba(0,0,0,.72);border-radius:999px;padding:11px 14px;font-weight:900;cursor:pointer;backdrop-filter:blur(10px)}
+    .unlock-btn{background:var(--ok);color:#06140d;border:0;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+    .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.76);z-index:80;display:none;align-items:center;justify-content:center;padding:18px}
     .modal-bg.show{display:flex}
-    .modal{width:min(94vw,520px); background:#151519; border:1px solid var(--line); border-radius:24px; padding:24px; box-shadow:0 30px 90px rgba(0,0,0,.65); text-align:left}
-    .modal h2{margin:0 0 10px; font-size:24px}.modal p{color:#c5c5ca; line-height:1.75}.modal label{display:block;color:#ddd;font-size:13px;margin-top:14px}
-    .modal input[type="text"],.modal input[type="range"]{width:100%; margin-top:8px}.modal input[type="text"]{background:#070709;color:#fff;border:1px solid #33343a;border-radius:12px;padding:13px}
-    .btn-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:16px}.btn-grid.one{grid-template-columns:1fr}
-    .primary,.secondary,.ok,.danger{border:0;border-radius:13px;padding:14px 16px;font-weight:900;cursor:pointer}.primary{background:#fff;color:#08080a}.secondary{background:#2a2a30;color:#fff}.ok{background:#61d394;color:#07150d}.danger{background:#ff5656;color:#fff}
-    .blackout{background:#000; border-color:#000; box-shadow:none}.blackout>*{display:none}.glitch{animation:glitch .18s infinite}@keyframes glitch{0%{transform:translate(0);filter:contrast(1)}25%{transform:translate(2px,-1px);filter:contrast(1.4)}50%{transform:translate(-2px,1px);filter:contrast(2)}75%{transform:translate(1px,2px);filter:contrast(1.2)}100%{transform:translate(0);filter:contrast(1)}}
-    @media (max-width:640px){.app{padding:10px}.stage{border-radius:18px; min-height:calc(100dvh - 20px); padding:14px}.topline{font-size:10px}.pill{padding:6px 8px}.video-shell,.opening-visual{border-radius:12px; margin-bottom:14px}.message{font-size:16px}.actions{right:10px; bottom:10px}.float-btn{font-size:13px; padding:10px 12px}.modal{padding:20px;border-radius:18px}.btn-grid{grid-template-columns:1fr}}
+    .modal{width:min(94vw,520px);background:#151519;border:1px solid var(--line);border-radius:24px;padding:24px;box-shadow:0 30px 90px rgba(0,0,0,.65);text-align:left}
+    .modal h2{margin:0 0 10px;font-size:24px}.modal p{color:#c9c9cf;line-height:1.75}.modal label{display:block;color:#ddd;font-size:13px;margin-top:14px}
+    .modal input[type="text"],.modal input[type="range"]{width:100%;margin-top:8px}.modal input[type="text"]{background:#070709;color:#fff;border:1px solid #33343a;border-radius:12px;padding:13px}
+    .btn-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}.btn-grid.one{grid-template-columns:1fr}
+    .primary,.secondary,.ok,.danger{border:0;border-radius:13px;padding:14px 16px;font-weight:900;cursor:pointer}.primary{background:#fff;color:#08080a}.secondary{background:#2a2a30;color:#fff}.ok{background:var(--ok);color:#07150d}.danger{background:var(--danger);color:#fff}
+    .blackout{background:#000;border-color:#000;box-shadow:none}.blackout>*{display:none}.glitch{animation:glitch .18s infinite}@keyframes glitch{0%{transform:translate(0);filter:contrast(1)}25%{transform:translate(2px,-1px);filter:contrast(1.4)}50%{transform:translate(-2px,1px);filter:contrast(2)}75%{transform:translate(1px,2px);filter:contrast(1.2)}100%{transform:translate(0);filter:contrast(1)}}
+    @media(max-width:640px){.app{padding:10px}.stage{border-radius:18px;min-height:calc(100dvh - 20px);padding:14px}.topline{font-size:10px}.pill{padding:6px 8px;font-size:10px}.video-shell,.opening-visual{border-radius:12px;margin-bottom:14px}.message{font-size:16px}.actions{right:10px;bottom:10px}.float-btn{font-size:13px;padding:10px 12px}.modal{padding:20px;border-radius:18px}.btn-grid{grid-template-columns:1fr}}
   </style>
 </head>
 <body>
-  <div class="app"><main id="stage" class="stage"><div class="topline"><span>CONNECTING</span></div><h1>GAME</h1><div class="message">接続中...</div></main></div>
-  <div class="actions"><button id="settingsBtn" class="float-btn">設定</button></div>
+  <div class="app">
+    <main id="stage" class="stage">
+      <div class="topline"><span id="labelEl">CONNECTING</span><span id="namePill" class="pill">未登録</span></div>
+      <h1 id="titleEl">GAME</h1>
+      <section id="openingBox" class="opening-visual hidden"><img id="openingImg" alt="開幕画像"><div id="openingEmpty" class="opening-empty hidden">開幕画像が設定されていません</div></section>
+      <section id="videoBox" class="video-shell hidden"><div class="video-inner"><div id="ytHost"><div id="ytPlayer"></div></div></div></section>
+      <div id="mediaStatus" class="media-status"></div>
+      <div id="messageEl" class="message">接続中...</div>
+      <div id="timerEl" class="timer"></div>
+      <div id="lockedEl" class="locked hidden">INPUT LOCKED</div>
+    </main>
+  </div>
+
+  <div class="actions">
+    <button id="unlockAudioBtn" class="float-btn unlock-btn hidden">音声を有効化</button>
+    <button id="settingsBtn" class="float-btn">設定</button>
+  </div>
 
   <div id="nameModal" class="modal-bg"><div class="modal"><h2>参加登録</h2><p>公演で使用する名前を入力してください。運営画面に表示されます。</p><label>名前</label><input id="playerNameInput" type="text" maxlength="24" placeholder="例：橋本"><label>音量：<span id="initialVolumeLabel">50</span>%</label><input id="initialVolumeInput" type="range" min="0" max="100" value="50"><div class="btn-grid"><button id="joinSoundOnBtn" class="ok">音声ONで参加</button><button id="joinSoundOffBtn" class="secondary">音声OFFで参加</button></div></div></div>
-
   <div id="settingsModal" class="modal-bg"><div class="modal"><h2>設定</h2><label>名前</label><input id="settingsNameInput" type="text" maxlength="24"><label>音量：<span id="settingsVolumeLabel">50</span>%</label><input id="settingsVolumeInput" type="range" min="0" max="100" value="50"><div class="btn-grid"><button id="soundToggleBtn" class="primary">音声切替</button><button id="saveSettingsBtn" class="ok">保存</button></div><div class="btn-grid one"><button id="closeSettingsBtn" class="secondary">閉じる</button></div></div></div>
-
-  <div id="messageModal" class="modal-bg"><div class="modal"><h2 id="messageTitle">運営からのお知らせ</h2><p id="messageBody"></p><div class="btn-grid one"><button id="readMessageBtn" class="ok">読みました</button></div></div></div>
+  <div id="messageModal" class="modal-bg"><div class="modal"><h2 id="noticeTitleEl">運営からのお知らせ</h2><p id="noticeBodyEl"></p><div class="btn-grid one"><button id="readMessageBtn" class="ok">読みました</button></div></div></div>
 
   <script src="https://www.youtube.com/iframe_api"></script>
   <script type="module">
@@ -86,276 +85,309 @@
     const db = getDatabase(app);
     const auth = getAuth(app);
     const sessionId = new URLSearchParams(location.search).get("session") || "selectword_test";
-
-    const stage = document.getElementById("stage");
-    const nameModal = document.getElementById("nameModal");
-    const settingsModal = document.getElementById("settingsModal");
-    const messageModal = document.getElementById("messageModal");
-    const playerNameInput = document.getElementById("playerNameInput");
-    const initialVolumeInput = document.getElementById("initialVolumeInput");
-    const initialVolumeLabel = document.getElementById("initialVolumeLabel");
-    const settingsBtn = document.getElementById("settingsBtn");
-    const settingsNameInput = document.getElementById("settingsNameInput");
-    const settingsVolumeInput = document.getElementById("settingsVolumeInput");
-    const settingsVolumeLabel = document.getElementById("settingsVolumeLabel");
-    const soundToggleBtn = document.getElementById("soundToggleBtn");
-
+    const $ = id => document.getElementById(id);
     const STORAGE_KEY = `rs_live_player_${sessionId}`;
+
     let uid = null;
     let profile = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null") || { name:"", soundEnabled:false, volume:50 };
-    let currentState = null;
-    let currentMessages = {};
-    let activeMessageId = null;
+    let control = { screen:"wait", message:"開演までお待ちください。", locked:true, timerEndAt:null };
+    let media = { youtube:{}, opening:{} };
+    let messages = {};
     let serverOffset = 0;
     let timerInterval = null;
-    let ytReady = false, player = null, playerReady = false, playlistKey = "", lastYtCommandId = null;
-    let openingAudio = null, localOpeningShown = false, lastOpeningCommandId = null;
-    let lastRenderKey = "";
+    let activeMessageId = null;
+    let userActivated = false;
 
-    initialVolumeInput.addEventListener("input", () => initialVolumeLabel.textContent = initialVolumeInput.value);
-    settingsVolumeInput.addEventListener("input", () => settingsVolumeLabel.textContent = settingsVolumeInput.value);
-    settingsBtn.addEventListener("click", openSettings);
-    document.getElementById("closeSettingsBtn").addEventListener("click", () => settingsModal.classList.remove("show"));
-    document.getElementById("saveSettingsBtn").addEventListener("click", saveSettings);
-    soundToggleBtn.addEventListener("click", () => { profile.soundEnabled = !profile.soundEnabled; updateProfileUi(); saveProfile(); syncMedia(); });
-    document.getElementById("joinSoundOnBtn").addEventListener("click", () => join(true));
-    document.getElementById("joinSoundOffBtn").addEventListener("click", () => join(false));
-    document.getElementById("readMessageBtn").addEventListener("click", markMessageRead);
+    let ytReady = false;
+    let player = null;
+    let playerReady = false;
+    let loadedPlaylistKey = "";
+    let lastYtCommandId = 0;
+    let wantedYoutubeAction = null;
 
-    window.onYouTubeIframeAPIReady = () => { ytReady = true; ensurePlayer(); };
+    let openingAudio = null;
+    let openingSrc = "";
+    let localOpeningShown = false;
+    let lastOpeningCommandId = 0;
 
-    onValue(ref(db, ".info/serverTimeOffset"), s => serverOffset = s.val() || 0);
+    window.onYouTubeIframeAPIReady = () => { ytReady = true; ensureYoutubePlayer(); applyMedia(); };
+
+    $("initialVolumeInput").addEventListener("input", () => $("initialVolumeLabel").textContent = $("initialVolumeInput").value);
+    $("settingsVolumeInput").addEventListener("input", () => $("settingsVolumeLabel").textContent = $("settingsVolumeInput").value);
+    $("settingsBtn").addEventListener("click", openSettings);
+    $("closeSettingsBtn").addEventListener("click", () => $("settingsModal").classList.remove("show"));
+    $("saveSettingsBtn").addEventListener("click", saveSettings);
+    $("joinSoundOnBtn").addEventListener("click", () => join(true));
+    $("joinSoundOffBtn").addEventListener("click", () => join(false));
+    $("soundToggleBtn").addEventListener("click", () => { userActivated = true; profile.soundEnabled = !profile.soundEnabled; saveProfile(); updateSettingsUi(); applyMedia(); });
+    $("unlockAudioBtn").addEventListener("click", () => { userActivated = true; applyMedia(true); });
+    $("readMessageBtn").addEventListener("click", markMessageRead);
+
+    onValue(ref(db, ".info/serverTimeOffset"), snap => serverOffset = snap.val() || 0);
     onAuthStateChanged(auth, user => {
       if (!user) return;
       uid = user.uid;
-      initPlayerPresence();
       startWatchers();
-      if (!profile.name) nameModal.classList.add("show");
+      if (profile.name) initPresence(); else $("nameModal").classList.add("show");
     });
-    signInAnonymously(auth).catch(err => renderError("AUTH ERROR", "匿名ログインに失敗しました。Firebase Authenticationの匿名ログインを有効にしてください。"));
+    signInAnonymously(auth).catch(() => renderError("AUTH ERROR", "匿名ログインに失敗しました。Firebase Authentication の匿名ログインを有効にしてください。"));
 
     async function join(soundEnabled){
-      const name = playerNameInput.value.trim();
+      const name = $("playerNameInput").value.trim();
       if (!name) { alert("名前を入力してください。"); return; }
-      profile = { name, soundEnabled, volume:Number(initialVolumeInput.value || 50) };
+      userActivated = true;
+      profile = { name, soundEnabled, volume:Number($("initialVolumeInput").value || 50) };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
-      nameModal.classList.remove("show");
-      await initPlayerPresence();
-      syncMedia();
+      $("nameModal").classList.remove("show");
+      await initPresence();
+      updateUi();
+      applyMedia(true);
     }
 
-    async function initPlayerPresence(){
+    async function initPresence(){
       if (!uid || !profile.name) return;
       const now = Date.now() + serverOffset;
       const playerRef = ref(db, `sessions/${sessionId}/players/${uid}`);
       await update(playerRef, { name:profile.name, online:true, joinedAt:now, lastSeen:now, soundEnabled:profile.soundEnabled, volume:profile.volume });
       onDisconnect(playerRef).update({ online:false, lastSeen:Date.now() });
-      setInterval(() => update(playerRef, { online:true, lastSeen:Date.now() + serverOffset, soundEnabled:profile.soundEnabled, volume:profile.volume }).catch(()=>{}), 15000);
+      setInterval(() => update(playerRef, { online:true, lastSeen:Date.now()+serverOffset, soundEnabled:profile.soundEnabled, volume:profile.volume }).catch(()=>{}), 15000);
     }
 
     function startWatchers(){
-      currentState = { control:{ screen:"wait", message:"開演までお待ちください。", locked:true }, media:{} };
-
-      // sessions全体を監視すると、参加者のlastSeen更新だけでもYouTube/MP3同期が走ってしまう。
-      // スマホで動画が最初に戻る原因になりやすいので、進行・メディア・メッセージを分けて監視する。
-      get(ref(db, `sessions/${sessionId}`)).then(snap => {
-        if (!snap.exists()) renderError("SESSION NOT FOUND", "指定された公演データが見つかりません。");
-      });
-
-      onValue(ref(db, `sessions/${sessionId}/control`), snap => {
-        currentState.control = snap.val() || { screen:"wait", message:"開演までお待ちください。", locked:true };
-        render();
-        ensurePlayer();
-        syncMedia();
-        showUnreadMessage();
-      });
-
-      onValue(ref(db, `sessions/${sessionId}/media`), snap => {
-        currentState.media = snap.val() || {};
-        render();
-        ensurePlayer();
-        syncMedia();
-      });
-
-      onValue(ref(db, `sessions/${sessionId}/messages`), snap => {
-        currentMessages = snap.val() || {};
-        showUnreadMessage();
-      });
+      get(ref(db, `sessions/${sessionId}`)).then(snap => { if(!snap.exists()) renderError("SESSION NOT FOUND", "指定された公演データが見つかりません。"); });
+      onValue(ref(db, `sessions/${sessionId}/control`), snap => { control = normalizeControl(snap.val()); updateUi(); applyMedia(); showUnreadMessage(); }, err => renderError("DATABASE ERROR", err.message));
+      onValue(ref(db, `sessions/${sessionId}/media`), snap => { media = normalizeMedia(snap.val()); updateUi(); ensureYoutubePlayer(); applyMedia(); }, err => renderError("DATABASE ERROR", err.message));
+      onValue(ref(db, `sessions/${sessionId}/messages`), snap => { messages = snap.val() || {}; showUnreadMessage(); }, err => console.error(err));
     }
 
-    function render(){
-      if (!currentState) return;
+    function normalizeControl(v){ return { screen:"wait", message:"開演までお待ちください。", locked:true, timerEndAt:null, ...(v || {}) }; }
+    function normalizeMedia(v){
+      const m = v || {};
+      return {
+        youtube:{ enabled:false, playlist:[], playing:false, mutedByAdmin:true, volume:50, command:"init", commandId:0, ...(m.youtube || {}) },
+        opening:{ enabled:false, imageUrl:"", mp3Url:"", volume:50, loop:true, showing:false, pendingAfterVideo:false, command:"init", commandId:0, ...(m.opening || {}) }
+      };
+    }
 
-      const control = currentState.control || currentState;
-      const media = currentState.media || {};
-      const youtube = media.youtube || currentState.videoControl || {};
+    function updateUi(){
+      const youtube = media.youtube || {};
       const opening = media.opening || {};
-      const screen = control.screen || "wait";
       const playlist = Array.isArray(youtube.playlist) ? youtube.playlist.filter(Boolean) : [];
+      const screen = control.screen || "wait";
       const showOpening = Boolean(opening.showing || localOpeningShown);
       const showVideo = !showOpening && screen === "wait" && youtube.enabled && playlist.length > 0;
 
-      const renderKey = JSON.stringify({
-        screen,
-        message: control.message || "",
-        locked: Boolean(control.locked),
-        showOpening,
-        showVideo,
-        openingImageUrl: opening.imageUrl || "",
-        playlist: playlist.join(","),
-        playerName: profile.name || ""
-      });
+      $("stage").className = "stage";
+      if (screen === "blackout") $("stage").classList.add("blackout");
+      if (screen === "glitch") $("stage").classList.add("glitch");
+      $("labelEl").textContent = showOpening ? "OPENING" : label(screen);
+      $("titleEl").textContent = showOpening ? "OPENING" : title(screen);
+      $("namePill").textContent = profile.name || "未登録";
+      $("messageEl").textContent = control.message || "";
+      $("lockedEl").classList.toggle("hidden", !control.locked);
 
-      if (renderKey === lastRenderKey) {
-        if (control.timerEndAt) startTimer(Number(control.timerEndAt));
+      $("videoBox").classList.toggle("hidden", !showVideo);
+      $("openingBox").classList.toggle("hidden", !showOpening);
+      if (showOpening) {
+        if (opening.imageUrl) {
+          $("openingImg").src = resolveUrl(opening.imageUrl);
+          $("openingImg").classList.remove("hidden");
+          $("openingEmpty").classList.add("hidden");
+        } else {
+          $("openingImg").classList.add("hidden");
+          $("openingEmpty").classList.remove("hidden");
+        }
+      }
+
+      $("mediaStatus").innerHTML = `
+        <span class="pill">あなたの音声:${profile.soundEnabled ? "ON" : "OFF"}</span>
+        <span class="pill">あなたの音量:${Number(profile.volume ?? 50)}%</span>
+        ${youtube.enabled ? `<span class="pill">運営YouTube:${youtube.mutedByAdmin ? "音声OFF" : "音声ON"} / ${Number(youtube.volume ?? 50)}%</span>` : ""}
+        ${opening.enabled ? `<span class="pill">運営mp3:${Number(opening.volume ?? 50)}%</span>` : ""}
+      `;
+
+      if (control.timerEndAt) startTimer(Number(control.timerEndAt)); else { clearInterval(timerInterval); $("timerEl").textContent = ""; }
+      updateUnlockButton();
+    }
+
+    function ensureYoutubePlayer(){
+      const youtube = media.youtube || {};
+      const opening = media.opening || {};
+      const playlist = Array.isArray(youtube.playlist) ? youtube.playlist.filter(Boolean) : [];
+      const showVideo = !(opening.showing || localOpeningShown) && (control.screen || "wait") === "wait" && youtube.enabled && playlist.length > 0;
+      if (!ytReady || !showVideo) return;
+
+      const key = playlist.join(",");
+      if (player && playerReady && loadedPlaylistKey === key) return;
+
+      destroyYoutubePlayer();
+      $("ytHost").innerHTML = `<div id="ytPlayer"></div>`;
+      loadedPlaylistKey = key;
+      player = new YT.Player("ytPlayer", {
+        width:"100%", height:"100%",
+        playerVars:{ autoplay:0, controls:0, rel:0, modestbranding:1, playsinline:1, enablejsapi:1, origin:location.origin },
+        events:{
+          onReady: () => {
+            playerReady = true;
+            try { player.cuePlaylist(playlist, 0, 0); } catch {}
+            if (youtube.playing) safePlayYoutube();
+            applyYoutubeAudio();
+          },
+          onStateChange: e => { if (e.data === YT.PlayerState.ENDED) handleVideoEnded(); }
+        }
+      });
+    }
+
+    function destroyYoutubePlayer(){
+      if (player) { try { player.destroy(); } catch {} }
+      player = null; playerReady = false; loadedPlaylistKey = "";
+    }
+
+    function applyMedia(forcePlay = false){
+      ensureYoutubePlayer();
+      applyYoutube(forcePlay);
+      applyOpeningAudio(forcePlay);
+      updateUnlockButton();
+    }
+
+    function applyYoutube(forcePlay = false){
+      const youtube = media.youtube || {};
+      if (!player || !playerReady) return;
+      applyYoutubeAudio();
+
+      if (youtube.commandId && youtube.commandId !== lastYtCommandId) {
+        lastYtCommandId = youtube.commandId;
+        runYoutubeCommand(youtube.command);
         return;
       }
 
-      lastRenderKey = renderKey;
-      clearInterval(timerInterval);
-      timerInterval = null;
-
-      // 画面を書き換えるとYouTube iframeが消えるため、古いplayerを必ず破棄してから作り直す。
-      destroyPlayer();
-
-      stage.className = "stage";
-      if (screen === "blackout") stage.classList.add("blackout");
-      if (screen === "glitch") stage.classList.add("glitch");
-
-      const mediaStatus = `<div class="media-status"><span class="pill">あなたの音声:${profile.soundEnabled ? "ON" : "OFF"}</span><span class="pill">音量:${profile.volume ?? 50}%</span>${youtube.enabled ? `<span class="pill">運営音声:${youtube.mutedByAdmin ? "OFF" : "ON"}</span>` : ""}</div>`;
-      const videoHtml = showVideo ? `<div class="video-shell"><div class="video-inner"><div id="ytPlayer"></div></div></div>${mediaStatus}` : "";
-      const openingHtml = showOpening ? `<div class="opening-visual">${opening.imageUrl ? `<img src="${escapeAttr(opening.imageUrl)}" alt="開幕画像">` : `<div style="padding:80px 20px;color:#aaa">開幕画像が設定されていません</div>`}</div>${mediaStatus}` : "";
-
-      stage.innerHTML = `
-        <div class="topline"><span>${escapeHtml(label(screen, showOpening))}</span><span class="pill">${escapeHtml(profile.name || "未登録")}</span></div>
-        <h1>${escapeHtml(title(screen, showOpening))}</h1>
-        ${openingHtml}${videoHtml}
-        <div class="message">${escapeHtml(control.message || "")}</div>
-        <div id="timer" class="timer"></div>
-        ${control.locked ? `<div class="locked">INPUT LOCKED</div>` : ""}
-      `;
-
-      if (control.timerEndAt) startTimer(Number(control.timerEndAt));
+      if (forcePlay && youtube.playing) safePlayYoutube();
+      if (!youtube.playing) { try { player.pauseVideo(); } catch {} }
     }
 
-    function ensurePlayer(){
-      if (!ytReady || !currentState) return;
-      const media = currentState.media || {};
-      const youtube = media.youtube || currentState.videoControl || {};
-      const opening = media.opening || {};
-      const control = currentState.control || currentState;
-      const playlist = Array.isArray(youtube.playlist) ? youtube.playlist.filter(Boolean) : [];
-      const showVideo = !(opening.showing || localOpeningShown) && (control.screen || "wait") === "wait" && youtube.enabled && playlist.length > 0;
-      if (!showVideo) { destroyPlayer(); return; }
-      const target = document.getElementById("ytPlayer"); if (!target) return;
-      const key = playlist.join(",");
-      // スマホではYT.Player生成後、#ytPlayer が iframe 自体に置き換わることがある。
-      // querySelector("iframe") で判定すると毎回作り直されて、再生/停止のたびに最初へ戻る。
-      if (player && playerReady && playlistKey === key) return;
-      destroyPlayer();
-      playlistKey = key;
-      player = new YT.Player("ytPlayer", { width:"100%", height:"100%", playerVars:{ autoplay:1, controls:0, rel:0, modestbranding:1, playsinline:1 }, events:{
-        onReady: () => { playerReady = true; if (youtube.playing) player.loadPlaylist(playlist, 0, 0); else player.cuePlaylist(playlist, 0, 0); syncMedia(); },
-        onStateChange: e => { if (e.data === YT.PlayerState.ENDED) handleVideoEnded(); }
-      }});
+    function runYoutubeCommand(command){
+      if (!player || !playerReady) return;
+      try {
+        if (command === "play") safePlayYoutube();
+        if (command === "pause" || command === "stop") player.pauseVideo();
+        if (command === "next") { safePlayYoutube(); player.nextVideo(); }
+        if (command === "restart") { player.seekTo(0, true); safePlayYoutube(); }
+        if (command === "reload") { destroyYoutubePlayer(); ensureYoutubePlayer(); }
+        if (command === "mute" || command === "unmute") applyYoutubeAudio();
+      } catch {}
+    }
+
+    function safePlayYoutube(){
+      if (!player || !playerReady) return;
+      try {
+        // 先にミュート再生するとスマホでも再生が通りやすい。あとで条件に応じて音を戻す。
+        if (!canUseSound() || (media.youtube || {}).mutedByAdmin) player.mute();
+        player.playVideo();
+        setTimeout(applyYoutubeAudio, 350);
+      } catch {}
+    }
+
+    function applyYoutubeAudio(){
+      if (!player || !playerReady) return;
+      const youtube = media.youtube || {};
+      const finalVolume = calcFinalVolume(profile.volume, youtube.volume);
+      try {
+        player.setVolume(finalVolume);
+        if (youtube.mutedByAdmin || !canUseSound()) player.mute(); else player.unMute();
+      } catch {}
     }
 
     function handleVideoEnded(){
-      const opening = currentState?.media?.opening || {};
-      if (opening.pendingAfterVideo) { localOpeningShown = true; destroyPlayer(); render(); syncOpeningAudio(); }
-    }
-    function destroyPlayer(){ if (player) { try{player.destroy()}catch{} } player=null; playerReady=false; playlistKey=""; }
-
-    function syncMedia(){ syncYoutube(); syncOpeningAudio(); }
-    function syncYoutube(){
-      const youtube = currentState?.media?.youtube || currentState?.videoControl || {};
-      if (!player || !playerReady) return;
-
-      const shouldMute = youtube.mutedByAdmin || !profile.soundEnabled;
-      const playerVolume = Number(profile.volume ?? 50);
-      const adminVolume = Number(youtube.volume ?? 50);
-      const finalVolume = Math.max(0, Math.min(100, Math.round(playerVolume * adminVolume / 100)));
-
-      try{
-        shouldMute ? player.mute() : player.unMute();
-        player.setVolume(finalVolume);
-      }catch{}
-
-      if (youtube.commandId && youtube.commandId !== lastYtCommandId){
-        lastYtCommandId = youtube.commandId;
-        runYtCommand(youtube.command);
-        return;
+      const opening = media.opening || {};
+      if (opening.pendingAfterVideo) {
+        localOpeningShown = true;
+        updateUi();
+        try { player.pauseVideo(); } catch {}
+        applyOpeningAudio(true);
       }
     }
 
-    function runYtCommand(cmd){
-      try{
-        if(cmd==="play") player.playVideo();
-        if(cmd==="pause"||cmd==="stop") player.pauseVideo();
-        if(cmd==="next") player.nextVideo();
-        if(cmd==="restart"){ player.seekTo(0,true); player.playVideo(); }
-        if(cmd==="reload"){ rebuildYoutubePlayer(); }
-      }catch{}
-    }
+    function applyOpeningAudio(forcePlay = false){
+      const opening = media.opening || {};
+      const shouldShow = Boolean(opening.showing || localOpeningShown);
+      if (!shouldShow || !opening.mp3Url) { pauseOpeningAudio(); return; }
 
-    function rebuildYoutubePlayer(){
-      destroyPlayer();
-      playlistKey = "";
-      lastRenderKey = "";
-      render();
-      ensurePlayer();
-      syncYoutube();
-    }
-
-    function syncOpeningAudio(){
-      const opening = currentState?.media?.opening || {};
-      const shouldShow = opening.showing || localOpeningShown;
-      if (!shouldShow || !opening.mp3Url) { stopOpeningAudio(); return; }
-
-      const mp3Src = resolveUrl(opening.mp3Url);
-      if (!openingAudio || openingAudio.src !== mp3Src){
-        stopOpeningAudio();
-        openingAudio = new Audio(mp3Src);
-        openingAudio.loop = opening.loop !== false;
+      const src = resolveUrl(opening.mp3Url);
+      if (!openingAudio || openingSrc !== src) {
+        pauseOpeningAudio();
+        openingSrc = src;
+        openingAudio = new Audio(src);
         openingAudio.preload = "auto";
-        openingAudio.addEventListener("ended", () => {
-          if (openingAudio && openingAudio.loop) {
-            openingAudio.currentTime = 0;
-            openingAudio.play().catch(()=>{});
-          }
-        });
+        openingAudio.loop = opening.loop !== false;
       }
 
-      const playerVolume = Number(profile.volume ?? 50);
-      const adminVolume = Number(opening.volume ?? 50);
-      openingAudio.volume = Math.max(0, Math.min(1, (playerVolume * adminVolume) / 10000));
-      openingAudio.muted = !profile.soundEnabled;
+      openingAudio.loop = opening.loop !== false;
+      openingAudio.volume = calcFinalVolume(profile.volume, opening.volume) / 100;
+      openingAudio.muted = !canUseSound();
 
-      if (opening.commandId && opening.commandId !== lastOpeningCommandId){
+      if (opening.commandId && opening.commandId !== lastOpeningCommandId) {
         lastOpeningCommandId = opening.commandId;
-        if(opening.command==="restart") openingAudio.currentTime = 0;
+        if (opening.command === "restart") openingAudio.currentTime = 0;
+        if (opening.command === "hide") { pauseOpeningAudio(); return; }
       }
 
-      if (openingAudio.paused) openingAudio.play().catch(()=>{});
+      if ((forcePlay || !openingAudio.paused) && canUseSound()) {
+        openingAudio.play().catch(() => updateUnlockButton(true));
+      } else if (canUseSound()) {
+        openingAudio.play().catch(() => updateUnlockButton(true));
+      }
     }
 
-    function stopOpeningAudio(){ if(openingAudio){ openingAudio.pause(); openingAudio.currentTime=0; } }
-    function resolveUrl(url){ try { return new URL(url, location.href).href; } catch { return url; } }
+    function pauseOpeningAudio(){ if (openingAudio) openingAudio.pause(); }
+    function canUseSound(){ return Boolean(profile.soundEnabled && userActivated); }
+    function calcFinalVolume(playerVolume=50, adminVolume=50){ return Math.max(0, Math.min(100, Math.round(Number(playerVolume ?? 50) * Number(adminVolume ?? 50) / 100))); }
+    function updateUnlockButton(force=false){
+      const needs = profile.soundEnabled && !userActivated;
+      $("unlockAudioBtn").classList.toggle("hidden", !(force || needs));
+    }
 
-    function openSettings(){ settingsNameInput.value = profile.name || ""; settingsVolumeInput.value = profile.volume ?? 50; settingsVolumeLabel.textContent = settingsVolumeInput.value; updateProfileUi(); settingsModal.classList.add("show"); }
-    async function saveSettings(){ const name = settingsNameInput.value.trim(); if(!name){alert("名前を入力してください。");return;} profile.name=name; profile.volume=Number(settingsVolumeInput.value||50); saveProfile(); settingsModal.classList.remove("show"); await initPlayerPresence(); render(); syncMedia(); }
-    function updateProfileUi(){ soundToggleBtn.textContent = profile.soundEnabled ? "音声OFFにする" : "音声ONにする"; }
-    function saveProfile(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(profile)); if(uid) update(ref(db, `sessions/${sessionId}/players/${uid}`), { name:profile.name, soundEnabled:profile.soundEnabled, volume:profile.volume, lastSeen:Date.now()+serverOffset }).catch(()=>{}); updateProfileUi(); }
+    function openSettings(){ $("settingsNameInput").value = profile.name || ""; $("settingsVolumeInput").value = profile.volume ?? 50; $("settingsVolumeLabel").textContent = $("settingsVolumeInput").value; updateSettingsUi(); $("settingsModal").classList.add("show"); }
+    async function saveSettings(){
+      const name = $("settingsNameInput").value.trim();
+      if (!name) { alert("名前を入力してください。"); return; }
+      userActivated = true;
+      profile.name = name;
+      profile.volume = Number($("settingsVolumeInput").value || 50);
+      saveProfile();
+      $("settingsModal").classList.remove("show");
+      await initPresence();
+      updateUi();
+      applyMedia(true);
+    }
+    function updateSettingsUi(){ $("soundToggleBtn").textContent = profile.soundEnabled ? "音声OFFにする" : "音声ONにする"; }
+    function saveProfile(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(profile)); if(uid && profile.name) update(ref(db, `sessions/${sessionId}/players/${uid}`), { name:profile.name, soundEnabled:profile.soundEnabled, volume:profile.volume, lastSeen:Date.now()+serverOffset }).catch(()=>{}); updateSettingsUi(); }
 
-    function showUnreadMessage(){ if(!uid || !profile.name) return; const entries = Object.entries(currentMessages || {}).filter(([id,m]) => m && m.active && !(m.reads && m.reads[uid])); if(!entries.length){ if(activeMessageId) messageModal.classList.remove("show"); activeMessageId=null; return; } entries.sort((a,b)=>(b[1].createdAt||0)-(a[1].createdAt||0)); const [id,msg]=entries[0]; activeMessageId=id; document.getElementById("messageTitle").textContent = msg.title || "運営からのお知らせ"; document.getElementById("messageBody").textContent = msg.body || ""; messageModal.classList.add("show"); }
-    async function markMessageRead(){ if(!activeMessageId || !uid) return; await set(ref(db, `sessions/${sessionId}/messages/${activeMessageId}/reads/${uid}`), { name:profile.name || "名無し", readAt:Date.now()+serverOffset }); messageModal.classList.remove("show"); activeMessageId=null; }
+    function showUnreadMessage(){
+      if(!uid || !profile.name) return;
+      const entries = Object.entries(messages || {}).filter(([id,m]) => m && m.active && !(m.reads && m.reads[uid]));
+      if(!entries.length){ if(activeMessageId) $("messageModal").classList.remove("show"); activeMessageId = null; return; }
+      entries.sort((a,b)=>(b[1].createdAt || 0) - (a[1].createdAt || 0));
+      const [id,msg] = entries[0];
+      activeMessageId = id;
+      $("noticeTitleEl").textContent = msg.title || "運営からのお知らせ";
+      $("noticeBodyEl").textContent = msg.body || "";
+      $("messageModal").classList.add("show");
+    }
+    async function markMessageRead(){
+      if(!activeMessageId || !uid) return;
+      await set(ref(db, `sessions/${sessionId}/messages/${activeMessageId}/reads/${uid}`), { name:profile.name || "名無し", readAt:Date.now()+serverOffset });
+      $("messageModal").classList.remove("show"); activeMessageId = null;
+    }
 
-    function startTimer(endAt){ const timerEl=document.getElementById("timer"); if(!timerEl)return; const tick=()=>{ const rest=Math.max(0,Math.ceil((endAt-(Date.now()+serverOffset))/1000)); timerEl.textContent=rest; if(rest<=0) clearInterval(timerInterval); }; tick(); timerInterval=setInterval(tick,200); }
-    function renderError(t,m){ stage.className="stage"; stage.innerHTML=`<div class="topline"><span>ERROR</span></div><h1>${escapeHtml(t)}</h1><div class="message">${escapeHtml(m)}</div>`; }
-    function label(s,o){ if(o)return"OPENING"; return ({wait:"PLEASE WAIT",opening:"OPENING",question:"QUESTION",answer:"ANSWER",glitch:"SYSTEM ERROR",blackout:"",clear:"CLEAR",gameover:"GAME OVER"}[s]||"LIVE"); }
-    function title(s,o){ if(o)return"OPENING"; return ({wait:"WAIT",opening:"START",question:"QUESTION",answer:"CHECK",glitch:"ERROR",blackout:"",clear:"CLEAR",gameover:"FAILED"}[s]||"GAME"); }
-    function escapeHtml(v){ return String(v ?? "").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;"); }
-    function escapeAttr(v){ return escapeHtml(v); }
+    function startTimer(endAt){
+      clearInterval(timerInterval);
+      const tick = () => { const rest = Math.max(0, Math.ceil((endAt - (Date.now()+serverOffset))/1000)); $("timerEl").textContent = rest; if(rest <= 0) clearInterval(timerInterval); };
+      tick(); timerInterval = setInterval(tick, 250);
+    }
+    function renderError(t,m){ $("labelEl").textContent = "ERROR"; $("titleEl").textContent = t; $("messageEl").textContent = m; }
+    function label(s){ return ({wait:"PLEASE WAIT",opening:"OPENING",question:"QUESTION",answer:"ANSWER",glitch:"SYSTEM ERROR",blackout:"",clear:"CLEAR",gameover:"GAME OVER"}[s] || "LIVE"); }
+    function title(s){ return ({wait:"WAIT",opening:"START",question:"QUESTION",answer:"CHECK",glitch:"ERROR",blackout:"",clear:"CLEAR",gameover:"FAILED"}[s] || "GAME"); }
+    function resolveUrl(url){ try { return new URL(url, location.href).href; } catch { return url || ""; } }
   </script>
 </body>
 </html>
