@@ -110,6 +110,7 @@
     let timerInterval = null;
     let ytReady = false, player = null, playerReady = false, playlistKey = "", lastYtCommandId = null;
     let openingAudio = null, localOpeningShown = false, lastOpeningCommandId = null;
+    let lastRenderKey = "";
 
     initialVolumeInput.addEventListener("input", () => initialVolumeLabel.textContent = initialVolumeInput.value);
     settingsVolumeInput.addEventListener("input", () => settingsVolumeLabel.textContent = settingsVolumeInput.value);
@@ -164,7 +165,7 @@
 
     function render(){
       if (!currentState) return;
-      clearInterval(timerInterval); timerInterval = null;
+
       const control = currentState.control || currentState;
       const media = currentState.media || {};
       const youtube = media.youtube || currentState.videoControl || {};
@@ -173,6 +174,29 @@
       const playlist = Array.isArray(youtube.playlist) ? youtube.playlist.filter(Boolean) : [];
       const showOpening = Boolean(opening.showing || localOpeningShown);
       const showVideo = !showOpening && screen === "wait" && youtube.enabled && playlist.length > 0;
+
+      const renderKey = JSON.stringify({
+        screen,
+        message: control.message || "",
+        locked: Boolean(control.locked),
+        showOpening,
+        showVideo,
+        openingImageUrl: opening.imageUrl || "",
+        playlist: playlist.join(","),
+        playerName: profile.name || ""
+      });
+
+      if (renderKey === lastRenderKey) {
+        if (control.timerEndAt) startTimer(Number(control.timerEndAt));
+        return;
+      }
+
+      lastRenderKey = renderKey;
+      clearInterval(timerInterval);
+      timerInterval = null;
+
+      // 画面を書き換えるとYouTube iframeが消えるため、古いplayerを必ず破棄してから作り直す。
+      destroyPlayer();
 
       stage.className = "stage";
       if (screen === "blackout") stage.classList.add("blackout");
@@ -190,6 +214,7 @@
         <div id="timer" class="timer"></div>
         ${control.locked ? `<div class="locked">INPUT LOCKED</div>` : ""}
       `;
+
       if (control.timerEndAt) startTimer(Number(control.timerEndAt));
     }
 
@@ -204,7 +229,7 @@
       if (!showVideo) { destroyPlayer(); return; }
       const target = document.getElementById("ytPlayer"); if (!target) return;
       const key = playlist.join(",");
-      if (player && playlistKey === key) return;
+      if (player && playlistKey === key && target.querySelector("iframe")) return;
       destroyPlayer(); playlistKey = key;
       player = new YT.Player("ytPlayer", { width:"100%", height:"100%", playerVars:{ autoplay:1, controls:0, rel:0, modestbranding:1, playsinline:1 }, events:{
         onReady: () => { playerReady = true; if (youtube.playing) player.loadPlaylist(playlist, 0, 0); else player.cuePlaylist(playlist, 0, 0); syncMedia(); },
