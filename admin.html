@@ -219,8 +219,20 @@
     $("timerStopBtn").onclick = () => setControl({ timerEndAt:null });
     async function setControl(data){ await update(ref(db,`sessions/${sessionId}/control`), { ...data, commandId:Date.now(), updatedAt:Date.now()+serverOffset }).catch(e => alert("更新できませんでした。\n" + e.message)); }
 
-    $("ytVolume").oninput = () => { $("ytVolumeLabel").textContent = $("ytVolume").value; clearTimeout(ytVolumeTimer); ytVolumeTimer = setTimeout(() => ytCommand("volume", { volume:Number($("ytVolume").value) }), 120); };
-    $("openingVolume").oninput = () => { $("openingVolumeLabel").textContent = $("openingVolume").value; clearTimeout(openingVolumeTimer); openingVolumeTimer = setTimeout(() => update(ref(db,`sessions/${sessionId}/media/opening`), { volume:Number($("openingVolume").value), command:"volume", commandId:Date.now(), updatedAt:Date.now()+serverOffset }).catch(console.error), 120); };
+    function saveYoutubeVolume(){
+      $("ytVolumeLabel").textContent = $("ytVolume").value;
+      clearTimeout(ytVolumeTimer);
+      ytVolumeTimer = setTimeout(() => ytCommand("volume", { volume:Number($("ytVolume").value) }), 60);
+    }
+    function saveOpeningVolume(){
+      $("openingVolumeLabel").textContent = $("openingVolume").value;
+      clearTimeout(openingVolumeTimer);
+      openingVolumeTimer = setTimeout(() => update(ref(db,`sessions/${sessionId}/media/opening`), { volume:Number($("openingVolume").value), command:"volume", commandId:Date.now(), updatedAt:Date.now()+serverOffset }).catch(console.error), 60);
+    }
+    $("ytVolume").oninput = saveYoutubeVolume;
+    $("ytVolume").onchange = saveYoutubeVolume;
+    $("openingVolume").oninput = saveOpeningVolume;
+    $("openingVolume").onchange = saveOpeningVolume;
 
     $("saveYoutubeBtn").onclick = () => {
       const playlist = extractYouTubeIds($("youtubeUrls").value);
@@ -256,9 +268,9 @@
       };
       Object.entries(extra || {}).forEach(([k,v]) => data[`media/youtube/${k}`] = v);
 
-      // YouTubeを操作したら、開幕画像表示を解除してYouTube画面へ戻す。
-      // これがないと、開幕画像表示中にYouTube操作を押しても画面上は何も変わらない。
-      if(command !== "hideOnlyOpening"){
+      // 再生/停止/次へなど画面に関わる操作では開幕画像を閉じてYouTube画面へ戻す。
+      // 音量変更や音声ON/OFFでは表示中の開幕画像を閉じない。
+      if(["play", "pause", "stop", "next", "restart", "reload"].includes(command)){
         data["media/opening/showing"] = false;
         data["media/opening/pendingAfterVideo"] = false;
         data["media/opening/command"] = "hide";
@@ -288,7 +300,24 @@
         "media/youtube/updatedAt": now + serverOffset
       });
     };
-    $("showOpeningAfterVideoBtn").onclick = () => update(ref(db,`sessions/${sessionId}/media/opening`), { enabled:true, showing:false, pendingAfterVideo:true, imageUrl:$("openingImageUrl").value.trim(), mp3Url:$("openingMp3Url").value.trim(), volume:Number($("openingVolume").value), command:"afterVideo", commandId:Date.now(), updatedAt:Date.now()+serverOffset });
+    $("showOpeningAfterVideoBtn").onclick = () => {
+      const now = Date.now();
+      update(ref(db,`sessions/${sessionId}`), {
+        "media/opening/enabled": true,
+        "media/opening/showing": false,
+        "media/opening/pendingAfterVideo": true,
+        "media/opening/imageUrl": $("openingImageUrl").value.trim(),
+        "media/opening/mp3Url": $("openingMp3Url").value.trim(),
+        "media/opening/volume": Number($("openingVolume").value),
+        "media/opening/command": "afterVideo",
+        "media/opening/commandId": now,
+        "media/opening/updatedAt": now + serverOffset,
+        "media/youtube/playing": true,
+        "media/youtube/command": "play",
+        "media/youtube/commandId": now + 1,
+        "media/youtube/updatedAt": now + serverOffset
+      }).catch(e => alert("動画後に表示を設定できませんでした。\n" + e.message));
+    };
     $("hideOpeningBtn").onclick = () => update(ref(db,`sessions/${sessionId}/media/opening`), { showing:false, pendingAfterVideo:false, command:"hide", commandId:Date.now(), updatedAt:Date.now()+serverOffset });
     $("restartOpeningAudioBtn").onclick = () => update(ref(db,`sessions/${sessionId}/media/opening`), { command:"restart", commandId:Date.now(), updatedAt:Date.now()+serverOffset });
 
