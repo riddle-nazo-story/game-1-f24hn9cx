@@ -154,13 +154,33 @@
     }
 
     function startWatchers(){
-      onValue(ref(db, `sessions/${sessionId}`), snap => {
-        const state = snap.val();
-        if (!state) { renderError("SESSION NOT FOUND", "指定された公演データが見つかりません。"); return; }
-        currentState = state;
-        render(); ensurePlayer(); syncMedia(); showUnreadMessage();
+      currentState = { control:{ screen:"wait", message:"開演までお待ちください。", locked:true }, media:{} };
+
+      // sessions全体を監視すると、参加者のlastSeen更新だけでもYouTube/MP3同期が走ってしまう。
+      // スマホで動画が最初に戻る原因になりやすいので、進行・メディア・メッセージを分けて監視する。
+      get(ref(db, `sessions/${sessionId}`)).then(snap => {
+        if (!snap.exists()) renderError("SESSION NOT FOUND", "指定された公演データが見つかりません。");
       });
-      onValue(ref(db, `sessions/${sessionId}/messages`), snap => { currentMessages = snap.val() || {}; showUnreadMessage(); });
+
+      onValue(ref(db, `sessions/${sessionId}/control`), snap => {
+        currentState.control = snap.val() || { screen:"wait", message:"開演までお待ちください。", locked:true };
+        render();
+        ensurePlayer();
+        syncMedia();
+        showUnreadMessage();
+      });
+
+      onValue(ref(db, `sessions/${sessionId}/media`), snap => {
+        currentState.media = snap.val() || {};
+        render();
+        ensurePlayer();
+        syncMedia();
+      });
+
+      onValue(ref(db, `sessions/${sessionId}/messages`), snap => {
+        currentMessages = snap.val() || {};
+        showUnreadMessage();
+      });
     }
 
     function render(){
@@ -229,8 +249,11 @@
       if (!showVideo) { destroyPlayer(); return; }
       const target = document.getElementById("ytPlayer"); if (!target) return;
       const key = playlist.join(",");
-      if (player && playlistKey === key && target.querySelector("iframe")) return;
-      destroyPlayer(); playlistKey = key;
+      // スマホではYT.Player生成後、#ytPlayer が iframe 自体に置き換わることがある。
+      // querySelector("iframe") で判定すると毎回作り直されて、再生/停止のたびに最初へ戻る。
+      if (player && playerReady && playlistKey === key) return;
+      destroyPlayer();
+      playlistKey = key;
       player = new YT.Player("ytPlayer", { width:"100%", height:"100%", playerVars:{ autoplay:1, controls:0, rel:0, modestbranding:1, playsinline:1 }, events:{
         onReady: () => { playerReady = true; if (youtube.playing) player.loadPlaylist(playlist, 0, 0); else player.cuePlaylist(playlist, 0, 0); syncMedia(); },
         onStateChange: e => { if (e.data === YT.PlayerState.ENDED) handleVideoEnded(); }
@@ -247,23 +270,77 @@
     function syncYoutube(){
       const youtube = currentState?.media?.youtube || currentState?.videoControl || {};
       if (!player || !playerReady) return;
-      if (youtube.commandId && youtube.commandId !== lastYtCommandId){ lastYtCommandId = youtube.commandId; runYtCommand(youtube.command); }
+
       const shouldMute = youtube.mutedByAdmin || !profile.soundEnabled;
-      try{ shouldMute ? player.mute() : player.unMute(); player.setVolume(Number(profile.volume ?? 50)); if (youtube.playing) player.playVideo(); else player.pauseVideo(); }catch{}
+      const playerVolume = Number(profile.volume ?? 50);
+      const adminVolume = Number(youtube.volume ?? 50);
+      const finalVolume = Math.max(0, Math.min(100, Math.round(playerVolume * adminVolume / 100)));
+
+      try{
+        shouldMute ? player.mute() : player.unMute();
+        player.setVolume(finalVolume);
+      }catch{}
+
+      if (youtube.commandId && youtube.commandId !== lastYtCommandId){
+        lastYtCommandId = youtube.commandId;
+        runYtCommand(youtube.command);
+        return;
+      }
     }
-    function runYtCommand(cmd){ try{ if(cmd==="play") player.playVideo(); if(cmd==="pause"||cmd==="stop") player.pauseVideo(); if(cmd==="next") player.nextVideo(); if(cmd==="restart"){player.seekTo(0,true);player.playVideo();} if(cmd==="reload") location.reload(); }catch{} }
+
+    function runYtCommand(cmd){
+      try{
+        if(cmd==="play") player.playVideo();
+        if(cmd==="pause"||cmd==="stop") player.pauseVideo();
+        if(cmd==="next") player.nextVideo();
+        if(cmd==="restart"){ player.seekTo(0,true); player.playVideo(); }
+        if(cmd==="reload"){ rebuildYoutubePlayer(); }
+      }catch{}
+    }
+
+    function rebuildYoutubePlayer(){
+      destroyPlayer();
+      playlistKey = "";
+      lastRenderKey = "";
+      render();
+      ensurePlayer();
+      syncYoutube();
+    }
 
     function syncOpeningAudio(){
       const opening = currentState?.media?.opening || {};
       const shouldShow = opening.showing || localOpeningShown;
       if (!shouldShow || !opening.mp3Url) { stopOpeningAudio(); return; }
-      if (!openingAudio || openingAudio.src !== opening.mp3Url){ stopOpeningAudio(); openingAudio = new Audio(opening.mp3Url); openingAudio.loop = opening.loop !== false; }
-      openingAudio.volume = Math.max(0, Math.min(1, ((profile.volume ?? 50)/100) * ((opening.volume ?? 50)/100)));
+
+      const mp3Src = resolveUrl(opening.mp3Url);
+      if (!openingAudio || openingAudio.src !== mp3Src){
+        stopOpeningAudio();
+        openingAudio = new Audio(mp3Src);
+        openingAudio.loop = opening.loop !== false;
+        openingAudio.preload = "auto";
+        openingAudio.addEventListener("ended", () => {
+          if (openingAudio && openingAudio.loop) {
+            openingAudio.currentTime = 0;
+            openingAudio.play().catch(()=>{});
+          }
+        });
+      }
+
+      const playerVolume = Number(profile.volume ?? 50);
+      const adminVolume = Number(opening.volume ?? 50);
+      openingAudio.volume = Math.max(0, Math.min(1, (playerVolume * adminVolume) / 10000));
       openingAudio.muted = !profile.soundEnabled;
-      if (opening.commandId && opening.commandId !== lastOpeningCommandId){ lastOpeningCommandId = opening.commandId; if(opening.command==="restart") openingAudio.currentTime = 0; }
-      openingAudio.play().catch(()=>{});
+
+      if (opening.commandId && opening.commandId !== lastOpeningCommandId){
+        lastOpeningCommandId = opening.commandId;
+        if(opening.command==="restart") openingAudio.currentTime = 0;
+      }
+
+      if (openingAudio.paused) openingAudio.play().catch(()=>{});
     }
+
     function stopOpeningAudio(){ if(openingAudio){ openingAudio.pause(); openingAudio.currentTime=0; } }
+    function resolveUrl(url){ try { return new URL(url, location.href).href; } catch { return url; } }
 
     function openSettings(){ settingsNameInput.value = profile.name || ""; settingsVolumeInput.value = profile.volume ?? 50; settingsVolumeLabel.textContent = settingsVolumeInput.value; updateProfileUi(); settingsModal.classList.add("show"); }
     async function saveSettings(){ const name = settingsNameInput.value.trim(); if(!name){alert("名前を入力してください。");return;} profile.name=name; profile.volume=Number(settingsVolumeInput.value||50); saveProfile(); settingsModal.classList.remove("show"); await initPlayerPresence(); render(); syncMedia(); }
