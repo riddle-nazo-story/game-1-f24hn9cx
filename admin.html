@@ -43,7 +43,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getDatabase, ref, onValue, update, set, push } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+    import { getDatabase, ref, onValue, update, set, push, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
     const firebaseConfig = {
@@ -140,9 +140,34 @@
     function renderSessions(sessions){
       const entries = Object.entries(sessions || {}).filter(([,s]) => s && typeof s === "object").sort((a,b) => String(a[1].eventAt || "").localeCompare(String(b[1].eventAt || "")));
       if(!entries.length){ $("sessionsList").textContent = "まだ公演がありません。"; return; }
-      $("sessionsList").innerHTML = entries.map(([id,s]) => `<div class="card ${id===sessionId ? "current" : ""}"><h3>${esc(s.title || id)}</h3><div class="note">${esc(s.eventAt || "日時未設定")}<br>ID: ${esc(id)}</div><div class="url">${esc(buildGameUrl(id))}</div><div class="mini"><button data-copy="${esc(buildGameUrl(id))}">参加者URLコピー</button><button data-go="${esc(buildAdminUrl(id))}" class="ok">操作</button></div></div>`).join("");
+      $("sessionsList").innerHTML = entries.map(([id,s]) => `<div class="card ${id===sessionId ? "current" : ""}"><h3>${esc(s.title || id)}</h3><div class="note">${esc(s.eventAt || "日時未設定")}<br>ID: ${esc(id)}</div><div class="url">${esc(buildGameUrl(id))}</div><div class="mini"><button data-copy="${esc(buildGameUrl(id))}">参加者URLコピー</button><button data-go="${esc(buildAdminUrl(id))}" class="ok">操作</button><button data-delete="${esc(id)}" data-title="${esc(s.title || id)}" class="danger">削除</button></div></div>`).join("");
       document.querySelectorAll("[data-copy]").forEach(b => b.onclick = () => copy(b.dataset.copy));
       document.querySelectorAll("[data-go]").forEach(b => b.onclick = () => location.href = b.dataset.go);
+      document.querySelectorAll("[data-delete]").forEach(b => b.onclick = () => deleteSession(b.dataset.delete, b.dataset.title));
+    }
+
+
+    async function deleteSession(id, title){
+      if(!id) return;
+      const isCurrent = id === sessionId;
+      const first = confirm(`公演「${title || id}」を削除しますか？
+
+参加者名・既読情報・メディア設定もまとめて削除されます。`);
+      if(!first) return;
+      const second = confirm("本当に削除しますか？この操作は元に戻せません。");
+      if(!second) return;
+      try {
+        await remove(ref(db, `sessions/${id}`));
+        alert("公演を削除しました。");
+        if(isCurrent){
+          const u = new URL(location.href);
+          u.searchParams.delete("session");
+          location.href = u.toString();
+        }
+      } catch(e) {
+        alert("削除できませんでした。ルールと運営ログイン状態を確認してください。
+" + e.message);
+      }
     }
 
     $("createSessionBtn").onclick = async () => {
