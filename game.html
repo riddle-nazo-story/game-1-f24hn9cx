@@ -108,6 +108,9 @@
 
     let openingAudio = null;
     let openingSrc = "";
+    let openingAudioContext = null;
+    let openingGain = null;
+    let openingSource = null;
     let localOpeningShown = false;
     let lastOpeningCommandId = 0;
     let lastOpeningUiCommandId = 0;
@@ -144,6 +147,7 @@
       $("nameModal").classList.remove("show");
       await initPresence();
       updateUi();
+      resumeOpeningAudioContext();
       applyMedia(true);
     }
 
@@ -263,10 +267,13 @@
           onReady: () => {
             playerReady = true;
             try { player.cuePlaylist(playlist, 0, 0); } catch {}
-            if (youtube.playing) safePlayYoutube();
-            applyYoutubeAudio();
+            if (youtube.playing || (media.opening || {}).pendingAfterVideo) safePlayYoutube();
+            applyYoutubeAudio(true);
           },
-          onStateChange: e => { if (e.data === YT.PlayerState.ENDED) handleVideoEnded(); }
+          onStateChange: e => {
+            if (e.data === YT.PlayerState.PLAYING) applyYoutubeAudio(true);
+            if (e.data === YT.PlayerState.ENDED) handleVideoEnded();
+          }
         }
       });
     }
@@ -324,24 +331,51 @@
         // 先にミュート再生するとスマホでも再生が通りやすい。あとで条件に応じて音を戻す。
         if (!canUseSound() || (media.youtube || {}).mutedByAdmin) player.mute();
         player.playVideo();
-        setTimeout(applyYoutubeAudio, 350);
+        setTimeout(() => applyYoutubeAudio(true), 350);
       } catch {}
     }
 
-    function applyYoutubeAudio(){
+    function applyYoutubeAudio(retry = false){
       if (!player || !playerReady) return;
       const youtube = media.youtube || {};
-      const finalVolume = calcFinalVolume(profile.volume, youtube.volume);
+      const finalVolume = clampVolume(youtube.volume);
+      const shouldMute = youtube.mutedByAdmin || !canUseSound() || finalVolume <= 0;
       try {
         player.setVolume(finalVolume);
-        if (youtube.mutedByAdmin || !canUseSound() || finalVolume <= 0) player.mute(); else player.unMute();
+        if (shouldMute) {
+          player.mute();
+        } else {
+          player.unMute();
+          player.setVolume(finalVolume);
+        }
       } catch {}
+
+      // スマホのYouTube iframeは反映が遅れることがあるため、少し遅らせて再適用する。
+      if (retry) {
+        setTimeout(() => applyYoutubeAudio(false), 250);
+        setTimeout(() => applyYoutubeAudio(false), 900);
+      }
     }
 
     function handleVideoEnded(){
+      const opening = media.opening || {};
+      const youtube = media.youtube || {};
+      const playlist = Array.isArray(youtube.playlist) ? youtube.playlist.filter(Boolean) : [];
+      if (!opening.pendingAfterVideo) return;
+
       if (shouldSwitchOpeningAfterVideo()) {
         switchToOpeningAfterVideo();
+        return;
       }
+
+      // YouTube側の自動送りが働かない環境向けに、最後の動画以外なら明示的に次へ進める。
+      try {
+        const idx = Number(player.getPlaylistIndex());
+        if (Number.isFinite(idx) && idx < playlist.length - 1) {
+          player.nextVideo();
+          safePlayYoutube();
+        }
+      } catch {}
     }
 
     function setupAfterVideoWatcher(){
@@ -352,8 +386,16 @@
       }
       if (afterVideoTimer) return;
       afterVideoTimer = setInterval(() => {
-        if (shouldSwitchOpeningAfterVideo()) switchToOpeningAfterVideo();
-      }, 500);
+        if (shouldSwitchOpeningAfterVideo()) {
+          switchToOpeningAfterVideo();
+          return;
+        }
+        // pending中に何らかの理由で止まっていたら、再生状態へ戻す。
+        try {
+          const st = player.getPlayerState();
+          if ((media.youtube || {}).playing && st === YT.PlayerState.PAUSED) safePlayYoutube();
+        } catch {}
+      }, 300);
     }
 
     function shouldSwitchOpeningAfterVideo(){
@@ -361,16 +403,35 @@
       const youtube = media.youtube || {};
       const playlist = Array.isArray(youtube.playlist) ? youtube.playlist.filter(Boolean) : [];
       if (!opening.pendingAfterVideo || !player || !playerReady || !playlist.length) return false;
+
       let state = null;
       let idx = 0;
       let len = playlist.length;
+      let currentVideoId = "";
+      let duration = 0;
+      let currentTime = 0;
+
       try { state = player.getPlayerState(); } catch {}
-      try { idx = Number(player.getPlaylistIndex() || 0); } catch {}
+      try { idx = Number(player.getPlaylistIndex()); if (!Number.isFinite(idx)) idx = 0; } catch {}
       try {
         const pl = player.getPlaylist && player.getPlaylist();
         if (Array.isArray(pl) && pl.length) len = pl.length;
       } catch {}
-      return state === YT.PlayerState.ENDED && idx >= len - 1;
+      try {
+        const data = player.getVideoData && player.getVideoData();
+        currentVideoId = data && data.video_id ? data.video_id : "";
+      } catch {}
+      try { duration = Number(player.getDuration() || 0); } catch {}
+      try { currentTime = Number(player.getCurrentTime() || 0); } catch {}
+
+      const lastVideoId = playlist[playlist.length - 1];
+      const isLastVideo = idx >= len - 1 || currentVideoId === lastVideoId;
+      if (!isLastVideo) return false;
+
+      if (state === YT.PlayerState.ENDED) return true;
+      // ENDEDイベントがスマホで取りこぼされる場合があるため、最後の動画の終端をポーリングでも拾う。
+      if (state === YT.PlayerState.PLAYING && duration > 0 && currentTime > 0 && duration - currentTime <= 0.6) return true;
+      return false;
     }
 
     function switchToOpeningAfterVideo(){
@@ -406,27 +467,60 @@
         openingAudio = new Audio(src);
         openingAudio.preload = "auto";
         openingAudio.loop = opening.loop !== false;
+        openingSource = null;
+        openingGain = null;
+        setupOpeningAudioGraph();
       }
 
       openingAudio.loop = opening.loop !== false;
-      const openingVolume = calcFinalVolume(profile.volume, opening.volume);
-      openingAudio.volume = openingVolume / 100;
-      openingAudio.muted = !canUseSound() || openingVolume <= 0;
+      const openingVolume = clampVolume(opening.volume);
+      setOpeningVolume(openingVolume);
 
       if (isNewOpeningCommand && opening.command === "restart") {
         try { openingAudio.currentTime = 0; } catch {}
       }
 
-      if ((forcePlay || !openingAudio.paused) && canUseSound()) {
-        openingAudio.play().catch(() => updateUnlockButton(true));
-      } else if (canUseSound()) {
-        openingAudio.play().catch(() => updateUnlockButton(true));
+      if (canUseSound()) {
+        resumeOpeningAudioContext();
+        openingAudio.play().catch(() => {});
       }
     }
 
     function pauseOpeningAudio(){ if (openingAudio) openingAudio.pause(); }
     function canUseSound(){ return Boolean(profile.soundEnabled); }
-    function calcFinalVolume(playerVolume=50, adminVolume=50){ return Math.max(0, Math.min(100, Math.round(Number(adminVolume ?? 50)))); }
+    function clampVolume(value=50){ return Math.max(0, Math.min(100, Math.round(Number(value ?? 50)))); }
+    function setupOpeningAudioGraph(){
+      if (!openingAudio) return;
+      try {
+        const Ctx = window.AudioContext || window.webkitAudioContext;
+        if (!Ctx) return;
+        if (!openingAudioContext) openingAudioContext = new Ctx();
+        openingSource = openingAudioContext.createMediaElementSource(openingAudio);
+        openingGain = openingAudioContext.createGain();
+        openingSource.connect(openingGain);
+        openingGain.connect(openingAudioContext.destination);
+      } catch (error) {
+        // iOS等でWebAudio接続が使えない場合は、audio.volume/muted のみで制御する。
+        openingGain = null;
+      }
+    }
+    function resumeOpeningAudioContext(){
+      try { if (openingAudioContext && openingAudioContext.state === "suspended") openingAudioContext.resume(); } catch {}
+    }
+    function setOpeningVolume(volume){
+      const finalVolume = clampVolume(volume);
+      const shouldMute = !canUseSound() || finalVolume <= 0;
+      if (openingAudio) {
+        try { openingAudio.volume = finalVolume / 100; } catch {}
+        openingAudio.muted = shouldMute;
+      }
+      if (openingGain && openingAudioContext) {
+        try {
+          const gainValue = shouldMute ? 0 : finalVolume / 100;
+          openingGain.gain.setTargetAtTime(gainValue, openingAudioContext.currentTime, 0.03);
+        } catch {}
+      }
+    }
     function updateUnlockButton(force=false){
       $("unlockAudioBtn").classList.add("hidden");
     }
@@ -442,6 +536,7 @@
       $("settingsModal").classList.remove("show");
       await initPresence();
       updateUi();
+      resumeOpeningAudioContext();
       applyMedia(true);
     }
     function updateSettingsUi(){ $("soundToggleBtn").textContent = profile.soundEnabled ? "音声OFFにする" : "音声ONにする"; }
