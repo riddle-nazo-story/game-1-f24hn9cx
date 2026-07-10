@@ -30,7 +30,7 @@
     .media-status{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin:-4px auto 18px;color:#c9c9d0}
     .actions{position:fixed;right:14px;bottom:14px;z-index:50;display:flex;flex-direction:column;gap:8px;align-items:flex-end}
     .float-btn{border:1px solid rgba(255,255,255,.22);color:#fff;background:rgba(0,0,0,.72);border-radius:999px;padding:11px 14px;font-weight:900;cursor:pointer;backdrop-filter:blur(10px)}
-    .unlock-btn{background:var(--ok);color:#06140d;border:0;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+    .unlock-btn{display:none!important;background:var(--ok);color:#06140d;border:0;box-shadow:0 10px 30px rgba(0,0,0,.35)}
     .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.76);z-index:80;display:none;align-items:center;justify-content:center;padding:18px}
     .modal-bg.show{display:flex}
     .modal{width:min(94vw,520px);background:#151519;border:1px solid var(--line);border-radius:24px;padding:24px;box-shadow:0 30px 90px rgba(0,0,0,.65);text-align:left}
@@ -96,7 +96,7 @@
     let serverOffset = 0;
     let timerInterval = null;
     let activeMessageId = null;
-    let userActivated = false;
+    let userActivated = Boolean(profile.soundEnabled);
 
     let ytReady = false;
     let player = null;
@@ -104,6 +104,7 @@
     let loadedPlaylistKey = "";
     let lastYtCommandId = 0;
     let wantedYoutubeAction = null;
+    let afterVideoTimer = null;
 
     let openingAudio = null;
     let openingSrc = "";
@@ -122,7 +123,7 @@
     $("joinSoundOnBtn").addEventListener("click", () => join(true));
     $("joinSoundOffBtn").addEventListener("click", () => join(false));
     $("soundToggleBtn").addEventListener("click", () => { userActivated = true; profile.soundEnabled = !profile.soundEnabled; saveProfile(); updateSettingsUi(); applyMedia(); });
-    $("unlockAudioBtn").addEventListener("click", () => { userActivated = true; applyMedia(true); });
+    $("unlockAudioBtn").addEventListener("click", () => { userActivated = true; profile.soundEnabled = true; saveProfile(); applyMedia(true); });
     $("readMessageBtn").addEventListener("click", markMessageRead);
 
     onValue(ref(db, ".info/serverTimeOffset"), snap => serverOffset = snap.val() || 0);
@@ -234,8 +235,7 @@
 
       $("mediaStatus").innerHTML = `
         <span class="pill">あなたの音声:${profile.soundEnabled ? "ON" : "OFF"}</span>
-        <span class="pill">あなたの音量:${Number(profile.volume ?? 50)}%</span>
-        ${youtube.enabled ? `<span class="pill">運営YouTube:${youtube.mutedByAdmin ? "音声OFF" : "音声ON"} / ${Number(youtube.volume ?? 50)}%</span>` : ""}
+        ${youtube.enabled ? `<span class="pill">運営YouTube:${youtube.mutedByAdmin || Number(youtube.volume ?? 50) <= 0 ? "音声OFF" : "音声ON"} / ${Number(youtube.volume ?? 50)}%</span>` : ""}
         ${opening.enabled ? `<span class="pill">運営mp3:${Number(opening.volume ?? 50)}%</span>` : ""}
       `;
 
@@ -280,6 +280,7 @@
       ensureYoutubePlayer();
       applyYoutube(forcePlay);
       applyOpeningAudio(forcePlay);
+      setupAfterVideoWatcher();
       updateUnlockButton();
     }
 
@@ -296,11 +297,13 @@
       if (youtube.commandId && youtube.commandId !== lastYtCommandId) {
         lastYtCommandId = youtube.commandId;
         runYoutubeCommand(youtube.command);
+        setupAfterVideoWatcher();
         return;
       }
 
-      if (forcePlay && youtube.playing) safePlayYoutube();
-      if (!youtube.playing) { try { player.pauseVideo(); } catch {} }
+      if ((forcePlay || opening.pendingAfterVideo) && youtube.playing) safePlayYoutube();
+      if (!youtube.playing && !opening.pendingAfterVideo) { try { player.pauseVideo(); } catch {} }
+      setupAfterVideoWatcher();
     }
 
     function runYoutubeCommand(command){
@@ -331,18 +334,51 @@
       const finalVolume = calcFinalVolume(profile.volume, youtube.volume);
       try {
         player.setVolume(finalVolume);
-        if (youtube.mutedByAdmin || !canUseSound()) player.mute(); else player.unMute();
+        if (youtube.mutedByAdmin || !canUseSound() || finalVolume <= 0) player.mute(); else player.unMute();
       } catch {}
     }
 
     function handleVideoEnded(){
-      const opening = media.opening || {};
-      if (opening.pendingAfterVideo) {
-        localOpeningShown = true;
-        updateUi();
-        try { player.pauseVideo(); } catch {}
-        applyOpeningAudio(true);
+      if (shouldSwitchOpeningAfterVideo()) {
+        switchToOpeningAfterVideo();
       }
+    }
+
+    function setupAfterVideoWatcher(){
+      const opening = media.opening || {};
+      if (!opening.pendingAfterVideo || !player || !playerReady) {
+        if (afterVideoTimer) { clearInterval(afterVideoTimer); afterVideoTimer = null; }
+        return;
+      }
+      if (afterVideoTimer) return;
+      afterVideoTimer = setInterval(() => {
+        if (shouldSwitchOpeningAfterVideo()) switchToOpeningAfterVideo();
+      }, 500);
+    }
+
+    function shouldSwitchOpeningAfterVideo(){
+      const opening = media.opening || {};
+      const youtube = media.youtube || {};
+      const playlist = Array.isArray(youtube.playlist) ? youtube.playlist.filter(Boolean) : [];
+      if (!opening.pendingAfterVideo || !player || !playerReady || !playlist.length) return false;
+      let state = null;
+      let idx = 0;
+      let len = playlist.length;
+      try { state = player.getPlayerState(); } catch {}
+      try { idx = Number(player.getPlaylistIndex() || 0); } catch {}
+      try {
+        const pl = player.getPlaylist && player.getPlaylist();
+        if (Array.isArray(pl) && pl.length) len = pl.length;
+      } catch {}
+      return state === YT.PlayerState.ENDED && idx >= len - 1;
+    }
+
+    function switchToOpeningAfterVideo(){
+      if (afterVideoTimer) { clearInterval(afterVideoTimer); afterVideoTimer = null; }
+      localOpeningShown = true;
+      try { if (player && playerReady) player.pauseVideo(); } catch {}
+      updateUi();
+      applyOpeningAudio(true);
     }
 
     function applyOpeningAudio(forcePlay = false){
@@ -373,8 +409,9 @@
       }
 
       openingAudio.loop = opening.loop !== false;
-      openingAudio.volume = calcFinalVolume(profile.volume, opening.volume) / 100;
-      openingAudio.muted = !canUseSound();
+      const openingVolume = calcFinalVolume(profile.volume, opening.volume);
+      openingAudio.volume = openingVolume / 100;
+      openingAudio.muted = !canUseSound() || openingVolume <= 0;
 
       if (isNewOpeningCommand && opening.command === "restart") {
         try { openingAudio.currentTime = 0; } catch {}
@@ -388,11 +425,10 @@
     }
 
     function pauseOpeningAudio(){ if (openingAudio) openingAudio.pause(); }
-    function canUseSound(){ return Boolean(profile.soundEnabled && userActivated); }
-    function calcFinalVolume(playerVolume=50, adminVolume=50){ return Math.max(0, Math.min(100, Math.round(Number(playerVolume ?? 50) * Number(adminVolume ?? 50) / 100))); }
+    function canUseSound(){ return Boolean(profile.soundEnabled); }
+    function calcFinalVolume(playerVolume=50, adminVolume=50){ return Math.max(0, Math.min(100, Math.round(Number(adminVolume ?? 50)))); }
     function updateUnlockButton(force=false){
-      const needs = profile.soundEnabled && !userActivated;
-      $("unlockAudioBtn").classList.toggle("hidden", !(force || needs));
+      $("unlockAudioBtn").classList.add("hidden");
     }
 
     function openSettings(){ $("settingsNameInput").value = profile.name || ""; $("settingsVolumeInput").value = profile.volume ?? 50; $("settingsVolumeLabel").textContent = $("settingsVolumeInput").value; updateSettingsUi(); $("settingsModal").classList.add("show"); }
