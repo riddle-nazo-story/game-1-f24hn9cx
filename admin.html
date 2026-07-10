@@ -5,13 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>RIDDLE LIVE ADMIN</title>
   <style>
-    :root{--bg:#070708;--panel:#151518;--panel2:#1d1d22;--line:rgba(255,255,255,.12);--text:#f5f5f7;--muted:#a5a5ad;--blue:#4ea1ff;--ok:#61d394;--danger:#ff5656;--warn:#ffbd4a}
+    :root{--bg:#070708;--panel:#151518;--line:rgba(255,255,255,.12);--text:#f5f5f7;--muted:#a5a5ad;--blue:#4ea1ff;--ok:#61d394;--danger:#ff5656;--warn:#ffbd4a}
     *{box-sizing:border-box}body{margin:0;min-height:100dvh;background:radial-gradient(circle at top,#20212a,#070708 58%,#000);color:var(--text);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Noto Sans JP",sans-serif;padding:18px}button,input,textarea{font:inherit}.wrap{max-width:1280px;margin:0 auto}.hidden{display:none!important}
     .login{max-width:440px;margin:9dvh auto;background:var(--panel);border:1px solid var(--line);border-radius:24px;padding:24px;box-shadow:0 30px 80px rgba(0,0,0,.5)}
     .top{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:16px}.title h1{margin:0 0 6px;font-size:30px;letter-spacing:.04em}.sub,.note{color:var(--muted);font-size:13px;line-height:1.65}.dash{display:grid;grid-template-columns:1.05fr .95fr;gap:14px}@media(max-width:960px){.dash{grid-template-columns:1fr}}
     .panel{background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.025));border:1px solid var(--line);border-radius:22px;padding:18px;margin-bottom:14px;box-shadow:0 18px 45px rgba(0,0,0,.24)}h2{font-size:18px;margin:0 0 14px}h3{font-size:15px;margin:0 0 8px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:9px}.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:700px){.two{grid-template-columns:1fr}}
     label{display:block;color:#ddd;font-size:13px;margin:12px 0 7px}input,textarea{width:100%;background:#08080a;color:#fff;border:1px solid #303038;border-radius:13px;padding:12px}textarea{min-height:110px;resize:vertical;line-height:1.55}button{border:0;border-radius:13px;padding:13px 14px;font-weight:900;cursor:pointer;background:#fff;color:#08080a}button:hover{opacity:.88}.blue{background:var(--blue);color:#fff}.ok{background:var(--ok);color:#07150d}.danger{background:var(--danger);color:#fff}.dark{background:#050506;color:#fff;border:1px solid #484852}.ghost{background:transparent;color:#fff;border:1px solid #44444d}.warn{background:var(--warn);color:#130d00}
-    .status{background:#060608;color:#c5c5cc;border:1px solid #27272e;border-radius:14px;padding:12px;white-space:pre-wrap;max-height:260px;overflow:auto;font-size:12px}.card{background:#0d0d10;border:1px solid #292930;border-radius:16px;padding:13px;margin-bottom:10px}.mini{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-top:10px}.url{background:#050506;border:1px solid #2e2e35;border-radius:12px;padding:10px;color:#d7d7dc;word-break:break-all;font-size:12px;margin-top:8px}.badge{display:inline-block;border:1px solid #3a3a42;border-radius:999px;padding:4px 8px;margin:2px;color:#ddd;font-size:12px}.online{background:rgba(97,211,148,.16);border-color:rgba(97,211,148,.5)}.offline{opacity:.55}.player-row{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;border-bottom:1px solid #28282e;padding:9px 0}.player-row:last-child{border-bottom:0}.read-list{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}.current{outline:2px solid rgba(97,211,148,.55)}
+    .status{background:#060608;color:#c5c5cc;border:1px solid #27272e;border-radius:14px;padding:12px;white-space:pre-wrap;max-height:260px;overflow:auto;font-size:12px}.card{background:#0d0d10;border:1px solid #292930;border-radius:16px;padding:13px;margin-bottom:10px}.mini{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-top:10px}.url{background:#050506;border:1px solid #2e2e35;border-radius:12px;padding:10px;color:#d7d7dc;word-break:break-all;font-size:12px;margin-top:8px}.badge{display:inline-block;border:1px solid #3a3a42;border-radius:999px;padding:4px 8px;margin:2px;color:#ddd;font-size:12px}.online{background:rgba(97,211,148,.16);border-color:rgba(97,211,148,.5)}.offline{opacity:.55}.player-row{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;border-bottom:1px solid #28282e;padding:9px 0}.player-row:last-child{border-bottom:0}.read-list{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}.current{outline:2px solid rgba(97,211,148,.55)}.error{color:#ff9292;white-space:pre-wrap}
     @media(max-width:640px){body{padding:10px}.panel{border-radius:16px;padding:14px}.title h1{font-size:24px}.grid{grid-template-columns:1fr 1fr}button{font-size:13px;padding:12px 10px}.login{margin:5dvh auto}}
   </style>
 </head>
@@ -46,88 +46,173 @@
     import { getDatabase, ref, onValue, update, set, push } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-    const firebaseConfig = { apiKey:"AIzaSyB4bBZIH9hP1sRBRwRWU4MNwVf91d9pgrQ", authDomain:"riddle-live-control.firebaseapp.com", databaseURL:"https://riddle-live-control-default-rtdb.asia-southeast1.firebasedatabase.app/", projectId:"riddle-live-control", storageBucket:"riddle-live-control.firebasestorage.app", messagingSenderId:"750925660526", appId:"1:750925660526:web:5678b5a966ed43ce19017f" };
-    const app = initializeApp(firebaseConfig); const db=getDatabase(app); const auth=getAuth(app);
-    const sessionId = new URLSearchParams(location.search).get("session") || "selectword_test";
-    let serverOffset=0,currentSession={},players={},messages={};
+    const firebaseConfig = {
+      apiKey:"AIzaSyB4bBZIH9hP1sRBRwRWU4MNwVf91d9pgrQ",
+      authDomain:"riddle-live-control.firebaseapp.com",
+      databaseURL:"https://riddle-live-control-default-rtdb.asia-southeast1.firebasedatabase.app/",
+      projectId:"riddle-live-control",
+      storageBucket:"riddle-live-control.firebasestorage.app",
+      messagingSenderId:"750925660526",
+      appId:"1:750925660526:web:5678b5a966ed43ce19017f"
+    };
 
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const auth = getAuth(app);
     const $ = id => document.getElementById(id);
-    $("sessionName").textContent=sessionId;
-    onValue(ref(db,".info/serverTimeOffset"),s=>serverOffset=s.val()||0);
-    $("loginBtn").addEventListener("click",async()=>{try{$("loginMsg").textContent="ログイン中...";await signInWithEmailAndPassword(auth,$("email").value.trim(),$("password").value)}catch(e){$("loginMsg").textContent="ログインできませんでした。";console.error(e)}});
-    onAuthStateChanged(auth,u=>{if(!u)return;$("loginPanel").classList.add("hidden");$("adminPanel").classList.remove("hidden");watch();});
+    const sessionId = new URLSearchParams(location.search).get("session") || "selectword_test";
 
-    function watch(){
-      onValue(ref(db,`sessions/${sessionId}`),s=>{currentSession=s.val()||{};renderCurrent();});
-      onValue(ref(db,`sessions/${sessionId}/players`),s=>{players=s.val()||{};renderPlayers();renderMessages();});
-      onValue(ref(db,`sessions/${sessionId}/messages`),s=>{messages=s.val()||{};renderMessages();});
-      onValue(ref(db,"sessions"),s=>renderSessions(s.val()||{}));
-    }
-
-    function renderCurrent(){
-      $("status").textContent=JSON.stringify(currentSession,null,2);
-      const control=currentSession.control||currentSession;
-      const yt=currentSession.media?.youtube||currentSession.videoControl||{};
-      const op=currentSession.media?.opening||{};
-      if(document.activeElement!==$("screenMessage")) $("screenMessage").value=control.message||"";
-      if(document.activeElement!==$("youtubeUrls")) $("youtubeUrls").value=(yt.playlist||[]).map(id=>`https://www.youtube.com/watch?v=${id}`).join("\n");
-      if(document.activeElement!==$("openingImageUrl")) $("openingImageUrl").value=op.imageUrl||"";
-      if(document.activeElement!==$("openingMp3Url")) $("openingMp3Url").value=op.mp3Url||"";
-      $("ytVolume").value=yt.volume??50;$("ytVolumeLabel").textContent=$("ytVolume").value;
-      $("openingVolume").value=op.volume??50;$("openingVolumeLabel").textContent=$("openingVolume").value;
-    }
-    function renderPlayers(){const arr=Object.entries(players);const online=arr.filter(([,p])=>p.online).length;$("onlineCount").textContent=online;$("totalCount").textContent=arr.length;if(!arr.length){$("playersList").textContent="まだ参加者はいません。";return;}$("playersList").innerHTML=arr.sort((a,b)=>(b[1].online?1:0)-(a[1].online?1:0)).map(([id,p])=>`<div class="player-row ${p.online?"":"offline"}"><div><strong>${esc(p.name||"名無し")}</strong><br><span class="note">${p.online?"オンライン":"オフライン"} / 音声:${p.soundEnabled?"ON":"OFF"} / 音量:${p.volume??50}%</span></div><span class="badge ${p.online?"online":""}">${p.online?"IN":"OUT"}</span></div>`).join("");}
-    function renderMessages(){const msgEntries=Object.entries(messages).sort((a,b)=>(b[1].createdAt||0)-(a[1].createdAt||0));if(!msgEntries.length){$("messagesList").innerHTML="<p class='note'>送信済みメッセージはありません。</p>";return;}const playerEntries=Object.entries(players);$("messagesList").innerHTML=msgEntries.map(([id,m])=>{const reads=m.reads||{};const readNames=Object.values(reads).map(r=>r.name||"名無し");const unread=playerEntries.filter(([uid])=>!reads[uid]).map(([,p])=>p.name||"名無し");return `<div class="card"><h3>${esc(m.title||"運営からのお知らせ")} ${m.active?"<span class='badge online'>表示中</span>":"<span class='badge'>非表示</span>"}</h3><div class="note">${esc(m.body||"")}</div><div class="read-list"><span class="badge online">既読 ${readNames.length}</span>${readNames.map(n=>`<span class="badge">${esc(n)}</span>`).join("")}</div><div class="read-list"><span class="badge">未読 ${unread.length}</span>${unread.map(n=>`<span class="badge">${esc(n)}</span>`).join("")}</div><div class="mini"><button data-hide-msg="${id}" class="dark">非表示</button></div></div>`;}).join("");document.querySelectorAll("[data-hide-msg]").forEach(b=>b.onclick=()=>update(ref(db,`sessions/${sessionId}/messages/${b.dataset.hideMsg}`),{active:false}));}
-    function renderSessions(sessions){const entries=Object.entries(sessions).sort((a,b)=>String(a[1].eventAt||"").localeCompare(String(b[1].eventAt||"")));if(!entries.length){$("sessionsList").textContent="まだ公演がありません。";return;}$("sessionsList").innerHTML=entries.map(([id,s])=>`<div class="card ${id===sessionId?"current":""}"><h3>${esc(s.title||id)}</h3><div class="note">${esc(s.eventAt||"日時未設定")}<br>ID: ${esc(id)}</div><div class="url">${esc(buildGameUrl(id))}</div><div class="mini"><button data-copy="${esc(buildGameUrl(id))}">参加者URLコピー</button><button data-go="${esc(buildAdminUrl(id))}" class="ok">操作</button></div></div>`).join("");document.querySelectorAll("[data-copy]").forEach(b=>b.onclick=()=>copy(b.dataset.copy));document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>location.href=b.dataset.go);}
-
-    $("createSessionBtn").onclick=async()=>{const title=$("newTitle").value.trim();const eventAt=$("newEventAt").value; if(!title||!eventAt){alert("公演名と日時を入力してください。");return;} const id=makeSessionId(title,eventAt);const playlist=extractYouTubeIds($("newYoutubeUrls").value);const now=Date.now()+serverOffset;const data={title,eventAt,control:{screen:"wait",message:$("newMessage").value||"開演までお待ちください。",locked:true,timerEndAt:null,command:"init",commandId:0},media:{youtube:{enabled:playlist.length>0,playlist,playing:playlist.length>0,mutedByAdmin:true,volume:50,command:"init",commandId:0},opening:{enabled:Boolean($("newOpeningImage").value||$("newOpeningMp3").value),imageUrl:$("newOpeningImage").value.trim(),mp3Url:$("newOpeningMp3").value.trim(),volume:50,loop:true,showing:false,pendingAfterVideo:false,command:"init",commandId:0}},players:{},messages:{},createdAt:now,updatedAt:now};await set(ref(db,`sessions/${id}`),data);$("createdGameUrl").textContent=buildGameUrl(id);$("createdAdminUrl").textContent=buildAdminUrl(id);$("createdBox").classList.remove("hidden");alert("公演を追加しました。");};
-    document.querySelectorAll("[data-screen]").forEach(b=>b.onclick=()=>setControl({screen:b.dataset.screen}));
-    $("saveScreenMessageBtn").onclick=()=>setControl({message:$("screenMessage").value});$("lockBtn").onclick=()=>setControl({locked:true});$("unlockBtn").onclick=()=>setControl({locked:false});$("timerStartBtn").onclick=()=>setControl({timerEndAt:Date.now()+serverOffset+Number($("timerSeconds").value||60)*1000});$("timerStopBtn").onclick=()=>setControl({timerEndAt:null});
-    async function setControl(data){await update(ref(db,`sessions/${sessionId}/control`),{...data,commandId:Date.now(),updatedAt:Date.now()+serverOffset});}
-
+    let serverOffset = 0;
+    let currentSession = {};
+    let players = {};
+    let messages = {};
     let ytVolumeTimer = null;
     let openingVolumeTimer = null;
-    $("ytVolume").oninput=()=>{
-      $("ytVolumeLabel").textContent=$("ytVolume").value;
-      clearTimeout(ytVolumeTimer);
-      ytVolumeTimer=setTimeout(()=>{
-        update(ref(db,`sessions/${sessionId}/media/youtube`),{
-          volume:Number($("ytVolume").value),
-          updatedAt:Date.now()+serverOffset
-        }).catch(console.error);
-      },180);
+
+    $("sessionName").textContent = sessionId;
+    onValue(ref(db,".info/serverTimeOffset"), s => serverOffset = s.val() || 0);
+
+    $("loginBtn").onclick = async () => {
+      try {
+        $("loginMsg").textContent = "ログイン中...";
+        await signInWithEmailAndPassword(auth, $("email").value.trim(), $("password").value);
+      } catch(e) {
+        $("loginMsg").textContent = "ログインできませんでした。メールアドレス・パスワードを確認してください。";
+      }
     };
-    $("openingVolume").oninput=()=>{
-      $("openingVolumeLabel").textContent=$("openingVolume").value;
-      clearTimeout(openingVolumeTimer);
-      openingVolumeTimer=setTimeout(()=>{
-        update(ref(db,`sessions/${sessionId}/media/opening`),{
-          volume:Number($("openingVolume").value),
-          updatedAt:Date.now()+serverOffset
-        }).catch(console.error);
-      },180);
+
+    onAuthStateChanged(auth, user => {
+      if (!user) return;
+      $("loginPanel").classList.add("hidden");
+      $("adminPanel").classList.remove("hidden");
+      watch();
+    });
+
+    function watch(){
+      onValue(ref(db,`sessions/${sessionId}`), snap => { currentSession = snap.val() || {}; renderCurrent(); }, err => showStatusError(err));
+      onValue(ref(db,`sessions/${sessionId}/players`), snap => { players = snap.val() || {}; renderPlayers(); renderMessages(); }, err => $("playersList").innerHTML = `<div class="error">参加者を読み込めません。\n${esc(err.message)}</div>`);
+      onValue(ref(db,`sessions/${sessionId}/messages`), snap => { messages = snap.val() || {}; renderMessages(); }, err => $("messagesList").innerHTML = `<div class="error">メッセージを読み込めません。\n${esc(err.message)}</div>`);
+      onValue(ref(db,"sessions"), snap => renderSessions(snap.val() || {}), err => $("sessionsList").innerHTML = `<div class="error">公演一覧を読み込めません。\n${esc(err.message)}</div>`);
+    }
+
+    function normalizeControl(s){ return { screen:"wait", message:"開演までお待ちください。", locked:true, timerEndAt:null, ...((s && s.control) || {}) }; }
+    function normalizeYoutube(s){ return { enabled:false, playlist:[], playing:false, mutedByAdmin:true, volume:50, command:"init", commandId:0, ...(((s && s.media) || {}).youtube || {}) }; }
+    function normalizeOpening(s){ return { enabled:false, imageUrl:"", mp3Url:"", volume:50, loop:true, showing:false, pendingAfterVideo:false, command:"init", commandId:0, ...(((s && s.media) || {}).opening || {}) }; }
+
+    function renderCurrent(){
+      const c = normalizeControl(currentSession);
+      const yt = normalizeYoutube(currentSession);
+      const op = normalizeOpening(currentSession);
+      $("status").textContent = JSON.stringify(currentSession, null, 2);
+      if(document.activeElement !== $("screenMessage")) $("screenMessage").value = c.message || "";
+      if(document.activeElement !== $("youtubeUrls")) $("youtubeUrls").value = (yt.playlist || []).map(id => `https://www.youtube.com/watch?v=${id}`).join("\n");
+      if(document.activeElement !== $("openingImageUrl")) $("openingImageUrl").value = op.imageUrl || "";
+      if(document.activeElement !== $("openingMp3Url")) $("openingMp3Url").value = op.mp3Url || "";
+      if(document.activeElement !== $("ytVolume")) { $("ytVolume").value = Number(yt.volume ?? 50); $("ytVolumeLabel").textContent = $("ytVolume").value; }
+      if(document.activeElement !== $("openingVolume")) { $("openingVolume").value = Number(op.volume ?? 50); $("openingVolumeLabel").textContent = $("openingVolume").value; }
+    }
+
+    function showStatusError(err){ $("status").innerHTML = `<div class="error">Firebaseを読み込めません。ルール、UID、ログイン状態を確認してください。\n${esc(err.message)}</div>`; }
+
+    function renderPlayers(){
+      const arr = Object.entries(players || {});
+      const online = arr.filter(([,p]) => p && p.online).length;
+      $("onlineCount").textContent = online;
+      $("totalCount").textContent = arr.length;
+      if(!arr.length){ $("playersList").textContent = "まだ参加者はいません。"; return; }
+      arr.sort((a,b) => (b[1]?.online?1:0) - (a[1]?.online?1:0));
+      $("playersList").innerHTML = arr.map(([id,p]) => `<div class="player-row ${p?.online ? "" : "offline"}"><div><strong>${esc(p?.name || "名無し")}</strong><br><span class="note">${p?.online ? "オンライン" : "オフライン"} / 音声:${p?.soundEnabled ? "ON" : "OFF"} / 音量:${p?.volume ?? 50}%</span></div><span class="badge ${p?.online ? "online" : ""}">${p?.online ? "IN" : "OUT"}</span></div>`).join("");
+    }
+
+    function renderMessages(){
+      const msgEntries = Object.entries(messages || {}).sort((a,b) => (b[1]?.createdAt || 0) - (a[1]?.createdAt || 0));
+      if(!msgEntries.length){ $("messagesList").innerHTML = "<p class='note'>送信済みメッセージはありません。</p>"; return; }
+      const playerEntries = Object.entries(players || {});
+      $("messagesList").innerHTML = msgEntries.map(([id,m]) => {
+        const reads = m?.reads || {};
+        const readNames = Object.values(reads).map(r => r?.name || "名無し");
+        const unread = playerEntries.filter(([uid]) => !reads[uid]).map(([,p]) => p?.name || "名無し");
+        return `<div class="card"><h3>${esc(m?.title || "運営からのお知らせ")} ${m?.active ? "<span class='badge online'>表示中</span>" : "<span class='badge'>非表示</span>"}</h3><div class="note">${esc(m?.body || "")}</div><div class="read-list"><span class="badge online">既読 ${readNames.length}</span>${readNames.map(n=>`<span class="badge">${esc(n)}</span>`).join("")}</div><div class="read-list"><span class="badge">未読 ${unread.length}</span>${unread.map(n=>`<span class="badge">${esc(n)}</span>`).join("")}</div><div class="mini"><button data-hide-msg="${esc(id)}" class="dark">非表示</button></div></div>`;
+      }).join("");
+      document.querySelectorAll("[data-hide-msg]").forEach(b => b.onclick = () => update(ref(db,`sessions/${sessionId}/messages/${b.dataset.hideMsg}`), { active:false }));
+    }
+
+    function renderSessions(sessions){
+      const entries = Object.entries(sessions || {}).filter(([,s]) => s && typeof s === "object").sort((a,b) => String(a[1].eventAt || "").localeCompare(String(b[1].eventAt || "")));
+      if(!entries.length){ $("sessionsList").textContent = "まだ公演がありません。"; return; }
+      $("sessionsList").innerHTML = entries.map(([id,s]) => `<div class="card ${id===sessionId ? "current" : ""}"><h3>${esc(s.title || id)}</h3><div class="note">${esc(s.eventAt || "日時未設定")}<br>ID: ${esc(id)}</div><div class="url">${esc(buildGameUrl(id))}</div><div class="mini"><button data-copy="${esc(buildGameUrl(id))}">参加者URLコピー</button><button data-go="${esc(buildAdminUrl(id))}" class="ok">操作</button></div></div>`).join("");
+      document.querySelectorAll("[data-copy]").forEach(b => b.onclick = () => copy(b.dataset.copy));
+      document.querySelectorAll("[data-go]").forEach(b => b.onclick = () => location.href = b.dataset.go);
+    }
+
+    $("createSessionBtn").onclick = async () => {
+      const title = $("newTitle").value.trim();
+      const eventAt = $("newEventAt").value;
+      if(!title || !eventAt){ alert("公演名と日時を入力してください。"); return; }
+      const id = makeSessionId(title, eventAt);
+      const playlist = extractYouTubeIds($("newYoutubeUrls").value);
+      const now = Date.now() + serverOffset;
+      const data = {
+        title, eventAt,
+        control:{ screen:"wait", message:$("newMessage").value || "開演までお待ちください。", locked:true, timerEndAt:null, command:"init", commandId:0, updatedAt:now },
+        media:{
+          youtube:{ enabled:playlist.length > 0, playlist, playing:playlist.length > 0, mutedByAdmin:true, volume:50, command:"init", commandId:0, updatedAt:now },
+          opening:{ enabled:Boolean($("newOpeningImage").value || $("newOpeningMp3").value), imageUrl:$("newOpeningImage").value.trim(), mp3Url:$("newOpeningMp3").value.trim(), volume:50, loop:true, showing:false, pendingAfterVideo:false, command:"init", commandId:0, updatedAt:now }
+        },
+        players:{}, messages:{}, createdAt:now, updatedAt:now
+      };
+      try {
+        await set(ref(db,`sessions/${id}`), data);
+        $("createdGameUrl").textContent = buildGameUrl(id);
+        $("createdAdminUrl").textContent = buildAdminUrl(id);
+        $("createdBox").classList.remove("hidden");
+        alert("公演を追加しました。");
+      } catch(e) { alert("公演を追加できませんでした。ルールと運営UIDを確認してください。\n" + e.message); }
     };
-    $("saveYoutubeBtn").onclick=()=>update(ref(db,`sessions/${sessionId}/media/youtube`),{enabled:extractYouTubeIds($("youtubeUrls").value).length>0,playlist:extractYouTubeIds($("youtubeUrls").value),volume:Number($("ytVolume").value),command:"reload",commandId:Date.now(),updatedAt:Date.now()+serverOffset});
-    $("ytShowBtn").onclick=()=>ytCommand("reload",{enabled:true});$("ytHideBtn").onclick=()=>ytCommand("stop",{enabled:false,playing:false});$("ytPlayBtn").onclick=()=>ytCommand("play",{playing:true});$("ytPauseBtn").onclick=()=>ytCommand("pause",{playing:false});$("ytNextBtn").onclick=()=>ytCommand("next",{playing:true});$("ytRestartBtn").onclick=()=>ytCommand("restart",{playing:true});$("ytSoundOnBtn").onclick=()=>ytCommand("unmute",{mutedByAdmin:false});$("ytSoundOffBtn").onclick=()=>ytCommand("mute",{mutedByAdmin:true});
-    async function ytCommand(command,extra={}){await update(ref(db,`sessions/${sessionId}/media/youtube`),{...extra,volume:Number($("ytVolume").value),command,commandId:Date.now(),updatedAt:Date.now()+serverOffset});}
 
-    $("saveOpeningBtn").onclick=()=>update(ref(db,`sessions/${sessionId}/media/opening`),{enabled:true,imageUrl:$("openingImageUrl").value.trim(),mp3Url:$("openingMp3Url").value.trim(),volume:Number($("openingVolume").value),loop:true,command:"save",commandId:Date.now(),updatedAt:Date.now()+serverOffset});
-    $("showOpeningNowBtn").onclick=()=>update(ref(db,`sessions/${sessionId}/media/opening`),{enabled:true,showing:true,pendingAfterVideo:false,imageUrl:$("openingImageUrl").value.trim(),mp3Url:$("openingMp3Url").value.trim(),volume:Number($("openingVolume").value),command:"show",commandId:Date.now(),updatedAt:Date.now()+serverOffset});
-    $("showOpeningAfterVideoBtn").onclick=()=>update(ref(db,`sessions/${sessionId}/media/opening`),{enabled:true,showing:false,pendingAfterVideo:true,imageUrl:$("openingImageUrl").value.trim(),mp3Url:$("openingMp3Url").value.trim(),volume:Number($("openingVolume").value),command:"afterVideo",commandId:Date.now(),updatedAt:Date.now()+serverOffset});
-    $("hideOpeningBtn").onclick=()=>update(ref(db,`sessions/${sessionId}/media/opening`),{showing:false,pendingAfterVideo:false,command:"hide",commandId:Date.now(),updatedAt:Date.now()+serverOffset});
-    $("restartOpeningAudioBtn").onclick=()=>update(ref(db,`sessions/${sessionId}/media/opening`),{command:"restart",commandId:Date.now(),updatedAt:Date.now()+serverOffset});
+    document.querySelectorAll("[data-screen]").forEach(b => b.onclick = () => setControl({ screen:b.dataset.screen }));
+    $("saveScreenMessageBtn").onclick = () => setControl({ message:$("screenMessage").value });
+    $("lockBtn").onclick = () => setControl({ locked:true });
+    $("unlockBtn").onclick = () => setControl({ locked:false });
+    $("timerStartBtn").onclick = () => setControl({ timerEndAt:Date.now()+serverOffset+Number($("timerSeconds").value || 60)*1000 });
+    $("timerStopBtn").onclick = () => setControl({ timerEndAt:null });
+    async function setControl(data){ await update(ref(db,`sessions/${sessionId}/control`), { ...data, commandId:Date.now(), updatedAt:Date.now()+serverOffset }).catch(e => alert("更新できませんでした。\n" + e.message)); }
 
-    $("sendNoticeBtn").onclick=async()=>{const body=$("noticeBody").value.trim(); if(!body){alert("本文を入力してください。");return;} await set(push(ref(db,`sessions/${sessionId}/messages`)),{title:$("noticeTitle").value.trim()||"運営からのお知らせ",body,active:true,createdAt:Date.now()+serverOffset,reads:{}});$("noticeBody").value="";};
-    $("clearNoticeBtn").onclick=async()=>{for(const id of Object.keys(messages)) await update(ref(db,`sessions/${sessionId}/messages/${id}`),{active:false});};
-    $("copyGameBtn").onclick=()=>copy(buildGameUrl(sessionId));$("openGameBtn").onclick=()=>window.open(buildGameUrl(sessionId),"_blank");
+    $("ytVolume").oninput = () => { $("ytVolumeLabel").textContent = $("ytVolume").value; clearTimeout(ytVolumeTimer); ytVolumeTimer = setTimeout(() => update(ref(db,`sessions/${sessionId}/media/youtube`), { volume:Number($("ytVolume").value), updatedAt:Date.now()+serverOffset }).catch(console.error), 120); };
+    $("openingVolume").oninput = () => { $("openingVolumeLabel").textContent = $("openingVolume").value; clearTimeout(openingVolumeTimer); openingVolumeTimer = setTimeout(() => update(ref(db,`sessions/${sessionId}/media/opening`), { volume:Number($("openingVolume").value), updatedAt:Date.now()+serverOffset }).catch(console.error), 120); };
 
-    function extractYouTubeIds(text){return [...new Set(String(text||"").split(/[\n,]+/).map(v=>extractYouTubeId(v.trim())).filter(Boolean))];}
-    function extractYouTubeId(v){if(!v)return"";if(/^[a-zA-Z0-9_-]{11}$/.test(v))return v;try{const u=new URL(v);if(u.hostname.includes("youtu.be"))return u.pathname.replace(/^\//,"").split("/")[0];if(u.hostname.includes("youtube.com")){if(u.searchParams.get("v"))return u.searchParams.get("v");const e=u.pathname.match(/\/(embed|shorts)\/([^/?]+)/);if(e)return e[2];}}catch{}return"";}
-    function makeSessionId(title,eventAt){const d=eventAt.replaceAll("-","").replaceAll(":","").replace("T","_");const t=title.toLowerCase().replace(/[^\w\u3040-\u30ff\u3400-\u9fff]+/g,"_").replace(/^_+|_+$/g,"").slice(0,18)||"event";return `${t}_${d}_${Math.random().toString(36).slice(2,8)}`;}
-    function buildGameUrl(id){const u=new URL(location.href);u.search="";u.hash="";u.pathname=u.pathname.endsWith("admin.html")?u.pathname.replace(/admin\.html$/,"game.html"):u.pathname.replace(/\/$/,"")+"/game.html";u.searchParams.set("session",id);return u.toString();}
-    function buildAdminUrl(id){const u=new URL(location.href);u.search="";u.hash="";if(!u.pathname.endsWith("admin.html"))u.pathname=u.pathname.replace(/\/$/,"")+"/admin.html";u.searchParams.set("session",id);return u.toString();}
-    async function copy(text){try{await navigator.clipboard.writeText(text);alert("コピーしました。");}catch{prompt("コピーしてください",text)}}
-    function esc(v){return String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");}
+    $("saveYoutubeBtn").onclick = () => {
+      const playlist = extractYouTubeIds($("youtubeUrls").value);
+      update(ref(db,`sessions/${sessionId}/media/youtube`), { enabled:playlist.length>0, playlist, volume:Number($("ytVolume").value), command:"reload", commandId:Date.now(), updatedAt:Date.now()+serverOffset }).catch(e => alert("保存できませんでした。\n" + e.message));
+    };
+    $("ytShowBtn").onclick = () => ytCommand("reload", { enabled:true });
+    $("ytHideBtn").onclick = () => ytCommand("stop", { enabled:false, playing:false });
+    $("ytPlayBtn").onclick = () => ytCommand("play", { playing:true });
+    $("ytPauseBtn").onclick = () => ytCommand("pause", { playing:false });
+    $("ytNextBtn").onclick = () => ytCommand("next", { playing:true });
+    $("ytRestartBtn").onclick = () => ytCommand("restart", { playing:true });
+    $("ytSoundOnBtn").onclick = () => ytCommand("unmute", { mutedByAdmin:false });
+    $("ytSoundOffBtn").onclick = () => ytCommand("mute", { mutedByAdmin:true });
+    async function ytCommand(command, extra={}){ await update(ref(db,`sessions/${sessionId}/media/youtube`), { ...extra, volume:Number($("ytVolume").value), command, commandId:Date.now(), updatedAt:Date.now()+serverOffset }).catch(e => alert("動画操作に失敗しました。\n" + e.message)); }
+
+    $("saveOpeningBtn").onclick = () => update(ref(db,`sessions/${sessionId}/media/opening`), { enabled:true, imageUrl:$("openingImageUrl").value.trim(), mp3Url:$("openingMp3Url").value.trim(), volume:Number($("openingVolume").value), loop:true, command:"save", commandId:Date.now(), updatedAt:Date.now()+serverOffset }).catch(e => alert("保存できませんでした。\n" + e.message));
+    $("showOpeningNowBtn").onclick = () => update(ref(db,`sessions/${sessionId}/media/opening`), { enabled:true, showing:true, pendingAfterVideo:false, imageUrl:$("openingImageUrl").value.trim(), mp3Url:$("openingMp3Url").value.trim(), volume:Number($("openingVolume").value), command:"show", commandId:Date.now(), updatedAt:Date.now()+serverOffset });
+    $("showOpeningAfterVideoBtn").onclick = () => update(ref(db,`sessions/${sessionId}/media/opening`), { enabled:true, showing:false, pendingAfterVideo:true, imageUrl:$("openingImageUrl").value.trim(), mp3Url:$("openingMp3Url").value.trim(), volume:Number($("openingVolume").value), command:"afterVideo", commandId:Date.now(), updatedAt:Date.now()+serverOffset });
+    $("hideOpeningBtn").onclick = () => update(ref(db,`sessions/${sessionId}/media/opening`), { showing:false, pendingAfterVideo:false, command:"hide", commandId:Date.now(), updatedAt:Date.now()+serverOffset });
+    $("restartOpeningAudioBtn").onclick = () => update(ref(db,`sessions/${sessionId}/media/opening`), { command:"restart", commandId:Date.now(), updatedAt:Date.now()+serverOffset });
+
+    $("sendNoticeBtn").onclick = async () => { const body = $("noticeBody").value.trim(); if(!body){ alert("本文を入力してください。"); return; } await set(push(ref(db,`sessions/${sessionId}/messages`)), { title:$("noticeTitle").value.trim() || "運営からのお知らせ", body, active:true, createdAt:Date.now()+serverOffset, reads:{} }); $("noticeBody").value = ""; };
+    $("clearNoticeBtn").onclick = async () => { for(const id of Object.keys(messages || {})) await update(ref(db,`sessions/${sessionId}/messages/${id}`), { active:false }); };
+    $("copyGameBtn").onclick = () => copy(buildGameUrl(sessionId));
+    $("openGameBtn").onclick = () => window.open(buildGameUrl(sessionId), "_blank");
+
+    function extractYouTubeIds(text){ return [...new Set(String(text || "").split(/[\n,]+/).map(v => extractYouTubeId(v.trim())).filter(Boolean))]; }
+    function extractYouTubeId(v){ if(!v) return ""; if(/^[a-zA-Z0-9_-]{11}$/.test(v)) return v; try { const u = new URL(v); if(u.hostname.includes("youtu.be")) return u.pathname.replace(/^\//,"").split("/")[0]; if(u.hostname.includes("youtube.com")){ if(u.searchParams.get("v")) return u.searchParams.get("v"); const e = u.pathname.match(/\/(embed|shorts)\/([^/?]+)/); if(e) return e[2]; } } catch {} return ""; }
+    function makeSessionId(title,eventAt){ const d = eventAt.replaceAll("-","").replaceAll(":","").replace("T","_"); const t = title.toLowerCase().replace(/[^\w\u3040-\u30ff\u3400-\u9fff]+/g,"_").replace(/^_+|_+$/g,"").slice(0,18) || "event"; return `${t}_${d}_${Math.random().toString(36).slice(2,8)}`; }
+    function buildGameUrl(id){ const u = new URL(location.href); u.search=""; u.hash=""; u.pathname = u.pathname.endsWith("admin.html") ? u.pathname.replace(/admin\.html$/, "game.html") : u.pathname.replace(/\/$/,"") + "/game.html"; u.searchParams.set("session", id); return u.toString(); }
+    function buildAdminUrl(id){ const u = new URL(location.href); u.search=""; u.hash=""; if(!u.pathname.endsWith("admin.html")) u.pathname = u.pathname.replace(/\/$/,"") + "/admin.html"; u.searchParams.set("session", id); return u.toString(); }
+    async function copy(text){ try { await navigator.clipboard.writeText(text); alert("コピーしました。"); } catch { prompt("コピーしてください", text); } }
+    function esc(v){ return String(v ?? "").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;"); }
   </script>
 </body>
 </html>
