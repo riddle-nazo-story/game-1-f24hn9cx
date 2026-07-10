@@ -219,12 +219,24 @@
     $("timerStopBtn").onclick = () => setControl({ timerEndAt:null });
     async function setControl(data){ await update(ref(db,`sessions/${sessionId}/control`), { ...data, commandId:Date.now(), updatedAt:Date.now()+serverOffset }).catch(e => alert("更新できませんでした。\n" + e.message)); }
 
-    $("ytVolume").oninput = () => { $("ytVolumeLabel").textContent = $("ytVolume").value; clearTimeout(ytVolumeTimer); ytVolumeTimer = setTimeout(() => update(ref(db,`sessions/${sessionId}/media/youtube`), { volume:Number($("ytVolume").value), updatedAt:Date.now()+serverOffset }).catch(console.error), 120); };
-    $("openingVolume").oninput = () => { $("openingVolumeLabel").textContent = $("openingVolume").value; clearTimeout(openingVolumeTimer); openingVolumeTimer = setTimeout(() => update(ref(db,`sessions/${sessionId}/media/opening`), { volume:Number($("openingVolume").value), updatedAt:Date.now()+serverOffset }).catch(console.error), 120); };
+    $("ytVolume").oninput = () => { $("ytVolumeLabel").textContent = $("ytVolume").value; clearTimeout(ytVolumeTimer); ytVolumeTimer = setTimeout(() => ytCommand("volume", { volume:Number($("ytVolume").value) }), 120); };
+    $("openingVolume").oninput = () => { $("openingVolumeLabel").textContent = $("openingVolume").value; clearTimeout(openingVolumeTimer); openingVolumeTimer = setTimeout(() => update(ref(db,`sessions/${sessionId}/media/opening`), { volume:Number($("openingVolume").value), command:"volume", commandId:Date.now(), updatedAt:Date.now()+serverOffset }).catch(console.error), 120); };
 
     $("saveYoutubeBtn").onclick = () => {
       const playlist = extractYouTubeIds($("youtubeUrls").value);
-      update(ref(db,`sessions/${sessionId}/media/youtube`), { enabled:playlist.length>0, playlist, volume:Number($("ytVolume").value), command:"reload", commandId:Date.now(), updatedAt:Date.now()+serverOffset }).catch(e => alert("保存できませんでした。\n" + e.message));
+      update(ref(db,`sessions/${sessionId}`), {
+        "media/youtube/enabled": playlist.length>0,
+        "media/youtube/playlist": playlist,
+        "media/youtube/volume": Number($("ytVolume").value),
+        "media/youtube/command": "reload",
+        "media/youtube/commandId": Date.now(),
+        "media/youtube/updatedAt": Date.now()+serverOffset,
+        "media/opening/showing": false,
+        "media/opening/pendingAfterVideo": false,
+        "media/opening/command": "hide",
+        "media/opening/commandId": Date.now()+1,
+        "media/opening/updatedAt": Date.now()+serverOffset
+      }).catch(e => alert("保存できませんでした。\n" + e.message));
     };
     $("ytShowBtn").onclick = () => ytCommand("reload", { enabled:true });
     $("ytHideBtn").onclick = () => ytCommand("stop", { enabled:false, playing:false });
@@ -234,10 +246,48 @@
     $("ytRestartBtn").onclick = () => ytCommand("restart", { playing:true });
     $("ytSoundOnBtn").onclick = () => ytCommand("unmute", { mutedByAdmin:false });
     $("ytSoundOffBtn").onclick = () => ytCommand("mute", { mutedByAdmin:true });
-    async function ytCommand(command, extra={}){ await update(ref(db,`sessions/${sessionId}/media/youtube`), { ...extra, volume:Number($("ytVolume").value), command, commandId:Date.now(), updatedAt:Date.now()+serverOffset }).catch(e => alert("動画操作に失敗しました。\n" + e.message)); }
+    async function ytCommand(command, extra={}){
+      const now = Date.now();
+      const data = {
+        "media/youtube/volume": Number($("ytVolume").value),
+        "media/youtube/command": command,
+        "media/youtube/commandId": now,
+        "media/youtube/updatedAt": now + serverOffset
+      };
+      Object.entries(extra || {}).forEach(([k,v]) => data[`media/youtube/${k}`] = v);
+
+      // YouTubeを操作したら、開幕画像表示を解除してYouTube画面へ戻す。
+      // これがないと、開幕画像表示中にYouTube操作を押しても画面上は何も変わらない。
+      if(command !== "hideOnlyOpening"){
+        data["media/opening/showing"] = false;
+        data["media/opening/pendingAfterVideo"] = false;
+        data["media/opening/command"] = "hide";
+        data["media/opening/commandId"] = now + 1;
+        data["media/opening/updatedAt"] = now + serverOffset;
+      }
+
+      await update(ref(db,`sessions/${sessionId}`), data).catch(e => alert("動画操作に失敗しました。\n" + e.message));
+    }
 
     $("saveOpeningBtn").onclick = () => update(ref(db,`sessions/${sessionId}/media/opening`), { enabled:true, imageUrl:$("openingImageUrl").value.trim(), mp3Url:$("openingMp3Url").value.trim(), volume:Number($("openingVolume").value), loop:true, command:"save", commandId:Date.now(), updatedAt:Date.now()+serverOffset }).catch(e => alert("保存できませんでした。\n" + e.message));
-    $("showOpeningNowBtn").onclick = () => update(ref(db,`sessions/${sessionId}/media/opening`), { enabled:true, showing:true, pendingAfterVideo:false, imageUrl:$("openingImageUrl").value.trim(), mp3Url:$("openingMp3Url").value.trim(), volume:Number($("openingVolume").value), command:"show", commandId:Date.now(), updatedAt:Date.now()+serverOffset });
+    $("showOpeningNowBtn").onclick = () => {
+      const now = Date.now();
+      update(ref(db,`sessions/${sessionId}`), {
+        "media/opening/enabled": true,
+        "media/opening/showing": true,
+        "media/opening/pendingAfterVideo": false,
+        "media/opening/imageUrl": $("openingImageUrl").value.trim(),
+        "media/opening/mp3Url": $("openingMp3Url").value.trim(),
+        "media/opening/volume": Number($("openingVolume").value),
+        "media/opening/command": "show",
+        "media/opening/commandId": now,
+        "media/opening/updatedAt": now + serverOffset,
+        "media/youtube/playing": false,
+        "media/youtube/command": "pause",
+        "media/youtube/commandId": now + 1,
+        "media/youtube/updatedAt": now + serverOffset
+      });
+    };
     $("showOpeningAfterVideoBtn").onclick = () => update(ref(db,`sessions/${sessionId}/media/opening`), { enabled:true, showing:false, pendingAfterVideo:true, imageUrl:$("openingImageUrl").value.trim(), mp3Url:$("openingMp3Url").value.trim(), volume:Number($("openingVolume").value), command:"afterVideo", commandId:Date.now(), updatedAt:Date.now()+serverOffset });
     $("hideOpeningBtn").onclick = () => update(ref(db,`sessions/${sessionId}/media/opening`), { showing:false, pendingAfterVideo:false, command:"hide", commandId:Date.now(), updatedAt:Date.now()+serverOffset });
     $("restartOpeningAudioBtn").onclick = () => update(ref(db,`sessions/${sessionId}/media/opening`), { command:"restart", commandId:Date.now(), updatedAt:Date.now()+serverOffset });
