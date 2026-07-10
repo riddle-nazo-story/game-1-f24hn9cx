@@ -109,6 +109,8 @@
     let openingSrc = "";
     let localOpeningShown = false;
     let lastOpeningCommandId = 0;
+    let lastOpeningUiCommandId = 0;
+    let lastYoutubeUiCommandId = 0;
 
     window.onYouTubeIframeAPIReady = () => { ytReady = true; ensureYoutubePlayer(); applyMedia(); };
 
@@ -156,7 +158,13 @@
     function startWatchers(){
       get(ref(db, `sessions/${sessionId}`)).then(snap => { if(!snap.exists()) renderError("SESSION NOT FOUND", "指定された公演データが見つかりません。"); });
       onValue(ref(db, `sessions/${sessionId}/control`), snap => { control = normalizeControl(snap.val()); updateUi(); applyMedia(); showUnreadMessage(); }, err => renderError("DATABASE ERROR", err.message));
-      onValue(ref(db, `sessions/${sessionId}/media`), snap => { media = normalizeMedia(snap.val()); updateUi(); ensureYoutubePlayer(); applyMedia(); }, err => renderError("DATABASE ERROR", err.message));
+      onValue(ref(db, `sessions/${sessionId}/media`), snap => {
+        media = normalizeMedia(snap.val());
+        processMediaUiCommands();
+        updateUi();
+        ensureYoutubePlayer();
+        applyMedia();
+      }, err => renderError("DATABASE ERROR", err.message));
       onValue(ref(db, `sessions/${sessionId}/messages`), snap => { messages = snap.val() || {}; showUnreadMessage(); }, err => console.error(err));
     }
 
@@ -167,6 +175,31 @@
         youtube:{ enabled:false, playlist:[], playing:false, mutedByAdmin:true, volume:50, command:"init", commandId:0, ...(m.youtube || {}) },
         opening:{ enabled:false, imageUrl:"", mp3Url:"", volume:50, loop:true, showing:false, pendingAfterVideo:false, command:"init", commandId:0, ...(m.opening || {}) }
       };
+    }
+
+    function processMediaUiCommands(){
+      const opening = media.opening || {};
+      const youtube = media.youtube || {};
+
+      if (opening.commandId && opening.commandId !== lastOpeningUiCommandId) {
+        lastOpeningUiCommandId = opening.commandId;
+        if (opening.command === "hide" || opening.command === "afterVideo") {
+          localOpeningShown = false;
+          pauseOpeningAudio();
+        }
+        if (opening.command === "show") {
+          localOpeningShown = false;
+          try { if (player && playerReady) player.pauseVideo(); } catch {}
+        }
+      }
+
+      if (youtube.commandId && youtube.commandId !== lastYoutubeUiCommandId) {
+        lastYoutubeUiCommandId = youtube.commandId;
+        if (["play", "pause", "stop", "next", "restart", "reload", "volume", "mute", "unmute"].includes(youtube.command)) {
+          localOpeningShown = false;
+          pauseOpeningAudio();
+        }
+      }
     }
 
     function updateUi(){
@@ -252,7 +285,12 @@
 
     function applyYoutube(forcePlay = false){
       const youtube = media.youtube || {};
+      const opening = media.opening || {};
       if (!player || !playerReady) return;
+      if (opening.showing || localOpeningShown) {
+        try { player.pauseVideo(); } catch {}
+        return;
+      }
       applyYoutubeAudio();
 
       if (youtube.commandId && youtube.commandId !== lastYtCommandId) {
@@ -270,10 +308,10 @@
       try {
         if (command === "play") safePlayYoutube();
         if (command === "pause" || command === "stop") player.pauseVideo();
-        if (command === "next") { safePlayYoutube(); player.nextVideo(); }
+        if (command === "next") { player.nextVideo(); safePlayYoutube(); }
         if (command === "restart") { player.seekTo(0, true); safePlayYoutube(); }
         if (command === "reload") { destroyYoutubePlayer(); ensureYoutubePlayer(); }
-        if (command === "mute" || command === "unmute") applyYoutubeAudio();
+        if (command === "mute" || command === "unmute" || command === "volume") applyYoutubeAudio();
       } catch {}
     }
 
@@ -309,6 +347,19 @@
 
     function applyOpeningAudio(forcePlay = false){
       const opening = media.opening || {};
+      let isNewOpeningCommand = false;
+
+      if (opening.commandId && opening.commandId !== lastOpeningCommandId) {
+        lastOpeningCommandId = opening.commandId;
+        isNewOpeningCommand = true;
+        if (opening.command === "hide") {
+          localOpeningShown = false;
+          pauseOpeningAudio();
+          updateUi();
+          return;
+        }
+      }
+
       const shouldShow = Boolean(opening.showing || localOpeningShown);
       if (!shouldShow || !opening.mp3Url) { pauseOpeningAudio(); return; }
 
@@ -325,10 +376,8 @@
       openingAudio.volume = calcFinalVolume(profile.volume, opening.volume) / 100;
       openingAudio.muted = !canUseSound();
 
-      if (opening.commandId && opening.commandId !== lastOpeningCommandId) {
-        lastOpeningCommandId = opening.commandId;
-        if (opening.command === "restart") openingAudio.currentTime = 0;
-        if (opening.command === "hide") { pauseOpeningAudio(); return; }
+      if (isNewOpeningCommand && opening.command === "restart") {
+        try { openingAudio.currentTime = 0; } catch {}
       }
 
       if ((forcePlay || !openingAudio.paused) && canUseSound()) {
