@@ -85,7 +85,28 @@
     $("saveScreenMessageBtn").onclick=()=>setControl({message:$("screenMessage").value});$("lockBtn").onclick=()=>setControl({locked:true});$("unlockBtn").onclick=()=>setControl({locked:false});$("timerStartBtn").onclick=()=>setControl({timerEndAt:Date.now()+serverOffset+Number($("timerSeconds").value||60)*1000});$("timerStopBtn").onclick=()=>setControl({timerEndAt:null});
     async function setControl(data){await update(ref(db,`sessions/${sessionId}/control`),{...data,commandId:Date.now(),updatedAt:Date.now()+serverOffset});}
 
-    $("ytVolume").oninput=()=>$("ytVolumeLabel").textContent=$("ytVolume").value;$("openingVolume").oninput=()=>$("openingVolumeLabel").textContent=$("openingVolume").value;
+    let ytVolumeTimer = null;
+    let openingVolumeTimer = null;
+    $("ytVolume").oninput=()=>{
+      $("ytVolumeLabel").textContent=$("ytVolume").value;
+      clearTimeout(ytVolumeTimer);
+      ytVolumeTimer=setTimeout(()=>{
+        update(ref(db,`sessions/${sessionId}/media/youtube`),{
+          volume:Number($("ytVolume").value),
+          updatedAt:Date.now()+serverOffset
+        }).catch(console.error);
+      },180);
+    };
+    $("openingVolume").oninput=()=>{
+      $("openingVolumeLabel").textContent=$("openingVolume").value;
+      clearTimeout(openingVolumeTimer);
+      openingVolumeTimer=setTimeout(()=>{
+        update(ref(db,`sessions/${sessionId}/media/opening`),{
+          volume:Number($("openingVolume").value),
+          updatedAt:Date.now()+serverOffset
+        }).catch(console.error);
+      },180);
+    };
     $("saveYoutubeBtn").onclick=()=>update(ref(db,`sessions/${sessionId}/media/youtube`),{enabled:extractYouTubeIds($("youtubeUrls").value).length>0,playlist:extractYouTubeIds($("youtubeUrls").value),volume:Number($("ytVolume").value),command:"reload",commandId:Date.now(),updatedAt:Date.now()+serverOffset});
     $("ytShowBtn").onclick=()=>ytCommand("reload",{enabled:true});$("ytHideBtn").onclick=()=>ytCommand("stop",{enabled:false,playing:false});$("ytPlayBtn").onclick=()=>ytCommand("play",{playing:true});$("ytPauseBtn").onclick=()=>ytCommand("pause",{playing:false});$("ytNextBtn").onclick=()=>ytCommand("next",{playing:true});$("ytRestartBtn").onclick=()=>ytCommand("restart",{playing:true});$("ytSoundOnBtn").onclick=()=>ytCommand("unmute",{mutedByAdmin:false});$("ytSoundOffBtn").onclick=()=>ytCommand("mute",{mutedByAdmin:true});
     async function ytCommand(command,extra={}){await update(ref(db,`sessions/${sessionId}/media/youtube`),{...extra,volume:Number($("ytVolume").value),command,commandId:Date.now(),updatedAt:Date.now()+serverOffset});}
