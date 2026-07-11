@@ -349,21 +349,43 @@
       const attemptPlay = () => {
         if (!player || !playerReady) return;
         try {
-          // スマホでは、まずミュート状態で再生を開始させる。
+          // 自動再生を通しやすくするため、再生命令の瞬間だけミュートする。
           player.mute();
 
           const state = player.getPlayerState();
-          // 動画末尾で「再生」を押した場合も、再生不能にならないよう先頭へ戻す。
+          const currentTime = Math.max(0, Number(player.getCurrentTime?.() || 0));
+          const currentIndex = Math.max(0, Number(player.getPlaylistIndex?.() || 0));
+          const playlist = Array.isArray((media.youtube || {}).playlist)
+            ? media.youtube.playlist.filter(Boolean)
+            : [];
+
           if (state === YT.PlayerState.ENDED) {
+            // 終了後は同じ動画の先頭から。
             player.seekTo(0, true);
+            player.playVideo();
+          } else if (state === YT.PlayerState.PAUSED || state === YT.PlayerState.BUFFERING) {
+            // スマホでは playVideo() だけが無視されることがあるため、
+            // 現在位置へ seekTo(..., true) してから再開する。
+            player.seekTo(currentTime, true);
+            player.playVideo();
+          } else if (state === YT.PlayerState.CUED || state === YT.PlayerState.UNSTARTED) {
+            // cue状態では再生ボタンが効かない端末向けに、再生用APIで読み直す。
+            if (playlist.length) {
+              player.loadPlaylist(playlist, currentIndex, currentTime);
+            } else {
+              player.playVideo();
+            }
+          } else {
+            player.playVideo();
           }
-          player.playVideo();
-        } catch {}
+        } catch {
+          try { player.playVideo(); } catch {}
+        }
       };
 
       attemptPlay();
       // iframe側が一度目の命令を取りこぼす端末向けに再送する。
-      [180, 500, 1000, 1800].forEach(delay => {
+      [160, 420, 850, 1500, 2400].forEach(delay => {
         playRetryTimers.push(setTimeout(() => {
           try {
             const state = player?.getPlayerState?.();
@@ -372,8 +394,9 @@
         }, delay));
       });
 
-      setTimeout(() => applyYoutubeAudio(true), 450);
-      setTimeout(() => applyYoutubeAudio(true), 1200);
+      setTimeout(() => applyYoutubeAudio(true), 500);
+      setTimeout(() => applyYoutubeAudio(true), 1400);
+      setTimeout(() => applyYoutubeAudio(true), 2600);
     }
 
     function applyYoutubeAudio(retry = false){
