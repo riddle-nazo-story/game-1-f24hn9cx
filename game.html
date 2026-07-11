@@ -194,7 +194,7 @@
         }
         if (opening.command === "show") {
           localOpeningShown = false;
-          try { if (player && playerReady) player.pauseVideo(); } catch {}
+          stopYoutubeForOpening();
         }
       }
 
@@ -296,7 +296,7 @@
       const opening = media.opening || {};
       if (!player || !playerReady) return;
       if (opening.showing || localOpeningShown) {
-        try { player.pauseVideo(); } catch {}
+        stopYoutubeForOpening();
         return;
       }
       applyYoutubeAudio();
@@ -411,9 +411,16 @@
     function switchToOpeningAfterVideo(){
       if (afterVideoTimer) { clearInterval(afterVideoTimer); afterVideoTimer = null; }
       localOpeningShown = true;
-      try { if (player && playerReady) player.pauseVideo(); } catch {}
+      stopYoutubeForOpening();
       updateUi();
       applyOpeningAudio(true);
+    }
+
+    function stopYoutubeForOpening(){
+      if (!player || !playerReady) return;
+      try { player.mute(); } catch {}
+      try { player.pauseVideo(); } catch {}
+      try { player.stopVideo(); } catch {}
     }
 
     function applyOpeningAudio(forcePlay = false){
