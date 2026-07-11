@@ -105,6 +105,8 @@
     let loadedPlaylistKey = "";
     let lastYtCommandId = 0;
     let wantedYoutubeAction = null;
+    let lastYoutubePlayingState = null;
+    let playRetryTimers = [];
     let afterVideoTimer = null;
 
     let openingAudio = null;
@@ -308,16 +310,26 @@
         return;
       }
 
-      if ((forcePlay || opening.pendingAfterVideo) && youtube.playing) safePlayYoutube(forcePlay);
-      if (!youtube.playing && !opening.pendingAfterVideo) { try { player.pauseVideo(); } catch {} }
+      // commandIdが更新されない管理画面でも、playingのfalse→true変化を拾って再生する。
+      const currentPlayingState = Boolean(youtube.playing);
+      const becamePlaying = lastYoutubePlayingState === false && currentPlayingState === true;
+      lastYoutubePlayingState = currentPlayingState;
+
+      if ((forcePlay || opening.pendingAfterVideo || becamePlaying) && currentPlayingState) {
+        safePlayYoutube(true);
+      }
+      if (!currentPlayingState && !opening.pendingAfterVideo) {
+        clearYoutubePlayRetries();
+        try { player.pauseVideo(); } catch {}
+      }
       setupAfterVideoWatcher();
     }
 
     function runYoutubeCommand(command){
       if (!player || !playerReady) return;
       try {
-        if (command === "play") safePlayYoutube(true);
-        if (command === "pause" || command === "stop") player.pauseVideo();
+        if (command === "play" || command === "resume" || command === "start") safePlayYoutube(true);
+        if (command === "pause" || command === "stop") { clearYoutubePlayRetries(); player.pauseVideo(); }
         if (command === "next") { player.nextVideo(); safePlayYoutube(true); }
         if (command === "restart") { player.seekTo(0, true); safePlayYoutube(true); }
         if (command === "reload") { destroyYoutubePlayer(); ensureYoutubePlayer(); }
@@ -325,16 +337,43 @@
       } catch {}
     }
 
+    function clearYoutubePlayRetries(){
+      playRetryTimers.forEach(id => clearTimeout(id));
+      playRetryTimers = [];
+    }
+
     function safePlayYoutube(forceMutedStart = false){
       if (!player || !playerReady) return;
-      try {
-        // スマホでは音ありの playVideo() が止められやすいので、必ず一度ミュートで再生開始する。
-        // その後、参加者が音声ONにしていて運営音量が0より上なら音を戻す。
-        player.mute();
-        player.playVideo();
-        setTimeout(() => applyYoutubeAudio(true), 450);
-        setTimeout(() => applyYoutubeAudio(true), 1200);
-      } catch {}
+      clearYoutubePlayRetries();
+
+      const attemptPlay = () => {
+        if (!player || !playerReady) return;
+        try {
+          // スマホでは、まずミュート状態で再生を開始させる。
+          player.mute();
+
+          const state = player.getPlayerState();
+          // 動画末尾で「再生」を押した場合も、再生不能にならないよう先頭へ戻す。
+          if (state === YT.PlayerState.ENDED) {
+            player.seekTo(0, true);
+          }
+          player.playVideo();
+        } catch {}
+      };
+
+      attemptPlay();
+      // iframe側が一度目の命令を取りこぼす端末向けに再送する。
+      [180, 500, 1000, 1800].forEach(delay => {
+        playRetryTimers.push(setTimeout(() => {
+          try {
+            const state = player?.getPlayerState?.();
+            if (state !== YT.PlayerState.PLAYING) attemptPlay();
+          } catch { attemptPlay(); }
+        }, delay));
+      });
+
+      setTimeout(() => applyYoutubeAudio(true), 450);
+      setTimeout(() => applyYoutubeAudio(true), 1200);
     }
 
     function applyYoutubeAudio(retry = false){
@@ -417,6 +456,7 @@
     }
 
     function stopYoutubeForOpening(){
+      clearYoutubePlayRetries();
       if (!player || !playerReady) return;
       try { player.mute(); } catch {}
       try { player.pauseVideo(); } catch {}
