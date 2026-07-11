@@ -61,8 +61,8 @@
     <button id="settingsBtn" class="float-btn">設定</button>
   </div>
 
-  <div id="nameModal" class="modal-bg"><div class="modal"><h2>参加登録</h2><p>公演で使用する名前を入力してください。運営画面に表示されます。</p><label>名前</label><input id="playerNameInput" type="text" maxlength="24" placeholder="例：橋本"><label>音量：<span id="initialVolumeLabel">50</span>%</label><input id="initialVolumeInput" type="range" min="0" max="100" value="50"><div class="btn-grid"><button id="joinSoundOnBtn" class="ok">音声ONで参加</button><button id="joinSoundOffBtn" class="secondary">音声OFFで参加</button></div></div></div>
-  <div id="settingsModal" class="modal-bg"><div class="modal"><h2>設定</h2><label>名前</label><input id="settingsNameInput" type="text" maxlength="24"><label>音量：<span id="settingsVolumeLabel">50</span>%</label><input id="settingsVolumeInput" type="range" min="0" max="100" value="50"><div class="btn-grid"><button id="soundToggleBtn" class="primary">音声切替</button><button id="saveSettingsBtn" class="ok">保存</button></div><div class="btn-grid one"><button id="closeSettingsBtn" class="secondary">閉じる</button></div></div></div>
+  <div id="nameModal" class="modal-bg"><div class="modal"><h2>参加登録</h2><p>公演で使用する名前を入力して参加してください。この操作で音声も自動的に有効になります。</p><label>名前</label><input id="playerNameInput" type="text" maxlength="24" placeholder="例：橋本"><div class="btn-grid one"><button id="joinBtn" class="ok">参加する</button></div></div></div>
+  <div id="settingsModal" class="modal-bg"><div class="modal"><h2>設定</h2><label>名前</label><input id="settingsNameInput" type="text" maxlength="24"><label>音量：<span id="settingsVolumeLabel">50</span>%</label><input id="settingsVolumeInput" type="range" min="0" max="100" value="50"><div class="btn-grid one"><button id="saveSettingsBtn" class="ok">保存</button></div><div class="btn-grid one"><button id="closeSettingsBtn" class="secondary">閉じる</button></div></div></div>
   <div id="messageModal" class="modal-bg"><div class="modal"><h2 id="noticeTitleEl">運営からのお知らせ</h2><p id="noticeBodyEl"></p><div class="btn-grid one"><button id="readMessageBtn" class="ok">読みました</button></div></div></div>
 
   <script src="https://www.youtube.com/iframe_api"></script>
@@ -89,14 +89,15 @@
     const STORAGE_KEY = `rs_live_player_${sessionId}`;
 
     let uid = null;
-    let profile = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null") || { name:"", soundEnabled:false, volume:50 };
+    let profile = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null") || { name:"", soundEnabled:true, volume:50 };
+    profile.soundEnabled = true;
     let control = { screen:"wait", message:"開演までお待ちください。", locked:true, timerEndAt:null };
     let media = { youtube:{}, opening:{} };
     let messages = {};
     let serverOffset = 0;
     let timerInterval = null;
     let activeMessageId = null;
-    let userActivated = Boolean(profile.soundEnabled);
+    let userActivated = false;
 
     let ytReady = false;
     let player = null;
@@ -118,14 +119,11 @@
 
     window.onYouTubeIframeAPIReady = () => { ytReady = true; ensureYoutubePlayer(); applyMedia(); };
 
-    $("initialVolumeInput").addEventListener("input", () => $("initialVolumeLabel").textContent = $("initialVolumeInput").value);
     $("settingsVolumeInput").addEventListener("input", () => $("settingsVolumeLabel").textContent = $("settingsVolumeInput").value);
-    $("settingsBtn").addEventListener("click", openSettings);
+    $("settingsBtn").addEventListener("click", async () => { await unlockAudioFromGesture(); openSettings(); });
     $("closeSettingsBtn").addEventListener("click", () => $("settingsModal").classList.remove("show"));
     $("saveSettingsBtn").addEventListener("click", saveSettings);
-    $("joinSoundOnBtn").addEventListener("click", () => join(true));
-    $("joinSoundOffBtn").addEventListener("click", () => join(false));
-    $("soundToggleBtn").addEventListener("click", () => { userActivated = true; profile.soundEnabled = !profile.soundEnabled; saveProfile(); updateSettingsUi(); applyMedia(); });
+    $("joinBtn").addEventListener("click", join);
     $("unlockAudioBtn").addEventListener("click", () => { userActivated = true; profile.soundEnabled = true; saveProfile(); applyMedia(true); });
     $("readMessageBtn").addEventListener("click", markMessageRead);
 
@@ -134,20 +132,22 @@
       if (!user) return;
       uid = user.uid;
       startWatchers();
-      if (profile.name) initPresence(); else $("nameModal").classList.add("show");
+      $("playerNameInput").value = profile.name || "";
+      $("nameModal").classList.add("show");
     });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
     signInAnonymously(auth).catch(() => renderError("AUTH ERROR", "匿名ログインに失敗しました。Firebase Authentication の匿名ログインを有効にしてください。"));
 
-    async function join(soundEnabled){
+    async function join(){
       const name = $("playerNameInput").value.trim();
       if (!name) { alert("名前を入力してください。"); return; }
       userActivated = true;
-      profile = { name, soundEnabled, volume:Number($("initialVolumeInput").value || 50) };
+      profile = { name, soundEnabled:true, volume:Number(profile.volume ?? 50) };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
       $("nameModal").classList.remove("show");
+      await unlockAudioFromGesture();
       await initPresence();
       updateUi();
-      resumeOpeningAudioContext();
       applyMedia(true);
     }
 
@@ -238,7 +238,7 @@
       }
 
       $("mediaStatus").innerHTML = `
-        <span class="pill">あなたの音声:${profile.soundEnabled ? "ON" : "OFF"}</span>
+        <span class="pill">音声:ON</span>
         ${youtube.enabled ? `<span class="pill">運営YouTube:${youtube.mutedByAdmin || Number(youtube.volume ?? 50) <= 0 ? "音声OFF" : "音声ON"} / ${Number(youtube.volume ?? 50)}%</span>` : ""}
         ${opening.enabled ? `<span class="pill">運営mp3:${Number(opening.volume ?? 50)}%</span>` : ""}
       `;
@@ -468,7 +468,7 @@
     }
 
     function pauseOpeningAudio(){ if (openingAudio) openingAudio.pause(); }
-    function canUseSound(){ return Boolean(profile.soundEnabled); }
+    function canUseSound(){ return userActivated && Boolean(profile.soundEnabled); }
     function clampVolume(value=50){ return Math.max(0, Math.min(100, Math.round(Number(value ?? 50)))); }
     function setupOpeningAudioGraph(){
       if (!openingAudio) return;
@@ -487,6 +487,47 @@
     }
     function resumeOpeningAudioContext(){
       try { if (openingAudioContext && openingAudioContext.state === "suspended") openingAudioContext.resume(); } catch {}
+    }
+    async function unlockAudioFromGesture(){
+      userActivated = true;
+      profile.soundEnabled = true;
+      saveProfile();
+      try {
+        if (!openingAudioContext) {
+          const Ctx = window.AudioContext || window.webkitAudioContext;
+          if (Ctx) openingAudioContext = new Ctx();
+        }
+        if (openingAudioContext && openingAudioContext.state === "suspended") await openingAudioContext.resume();
+      } catch {}
+      try {
+        const opening = media.opening || {};
+        if (!openingAudio && opening.mp3Url) {
+          openingSrc = resolveUrl(opening.mp3Url);
+          openingAudio = new Audio(openingSrc);
+          openingAudio.preload = "auto";
+          openingAudio.loop = opening.loop !== false;
+          setupOpeningAudioGraph();
+        }
+        if (openingAudio) {
+          const previousMuted = openingAudio.muted;
+          const previousVolume = openingAudio.volume;
+          openingAudio.muted = true;
+          openingAudio.volume = 0;
+          const p = openingAudio.play();
+          if (p && typeof p.then === "function") await p;
+          openingAudio.pause();
+          try { openingAudio.currentTime = 0; } catch {}
+          openingAudio.volume = previousVolume;
+          openingAudio.muted = previousMuted;
+        }
+      } catch {}
+      try {
+        if (player && playerReady) {
+          player.mute();
+          player.playVideo();
+          setTimeout(() => applyYoutubeAudio(true), 300);
+        }
+      } catch {}
     }
     function setOpeningVolume(volume){
       const finalVolume = clampVolume(volume);
@@ -510,17 +551,16 @@
     async function saveSettings(){
       const name = $("settingsNameInput").value.trim();
       if (!name) { alert("名前を入力してください。"); return; }
-      userActivated = true;
       profile.name = name;
+      profile.soundEnabled = true;
       profile.volume = Number($("settingsVolumeInput").value || 50);
       saveProfile();
       $("settingsModal").classList.remove("show");
       await initPresence();
       updateUi();
-      resumeOpeningAudioContext();
       applyMedia(true);
     }
-    function updateSettingsUi(){ $("soundToggleBtn").textContent = profile.soundEnabled ? "音声OFFにする" : "音声ONにする"; }
+    function updateSettingsUi(){}
     function saveProfile(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(profile)); if(uid && profile.name) update(ref(db, `sessions/${sessionId}/players/${uid}`), { name:profile.name, soundEnabled:profile.soundEnabled, volume:profile.volume, lastSeen:Date.now()+serverOffset }).catch(()=>{}); updateSettingsUi(); }
 
     function showUnreadMessage(){
